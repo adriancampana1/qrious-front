@@ -20,149 +20,19 @@ import { useGlobalMessage } from '../../../shared/hooks/use-message';
 import { useGetAllSessions } from '../../session/hooks/use-session';
 import { useGetAllQuestionnaires } from '../../questionnaire/hooks/use-questionnaire';
 import { bankQuestionHooks } from '../../bank-question/hooks/use-bank-question';
+import { useGetAllUsers } from '../../auth/hooks/use-users';
+import { useNavigate } from 'react-router';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
-const mockData = {
-  stats: {
-    totalUsers: 1250,
-    totalSessions: 87,
-    totalQuestions: 543,
-    totalQuestionnaires: 32,
-    activeQuestionnaires: 8
-  },
-  recentSessions: [
-    {
-      id: 1,
-      title: 'Introdução à Programação',
-      theme: 'Programação',
-      participants: 45,
-      questions: 23,
-      status: 'active',
-      timeRemaining: '1h 30min',
-      progress: 65
-    },
-    {
-      id: 2,
-      title: 'Matemática Discreta',
-      theme: 'Matemática',
-      participants: 32,
-      questions: 15,
-      status: 'active',
-      timeRemaining: '45min',
-      progress: 80
-    },
-    {
-      id: 3,
-      title: 'Banco de Dados',
-      theme: 'Computação',
-      participants: 28,
-      questions: 19,
-      status: 'ended'
-    },
-    {
-      id: 4,
-      title: 'Algoritmos Avançados',
-      theme: 'Programação',
-      participants: 22,
-      questions: 12,
-      status: 'ended'
-    }
-  ],
-  questionnaires: [
-    {
-      id: 1,
-      title: 'Fundamentos de Programação',
-      theme: 'Programação',
-      questions: 20,
-      status: 'active',
-      timeLimit: '1 hora',
-      completionRate: 75
-    },
-    {
-      id: 2,
-      title: 'Álgebra Linear',
-      theme: 'Matemática',
-      questions: 15,
-      status: 'draft'
-    },
-    {
-      id: 3,
-      title: 'Estruturas de Dados',
-      theme: 'Computação',
-      questions: 18,
-      status: 'ended',
-      completionRate: 100
-    }
-  ],
-  topQuestions: [
-    {
-      id: 1,
-      title: 'Como implementar recursão?',
-      votes: 45,
-      session: 'Introdução à Programação',
-      answered: true
-    },
-    {
-      id: 2,
-      title: 'Diferença entre SQL e NoSQL?',
-      votes: 38,
-      session: 'Banco de Dados',
-      answered: true
-    },
-    {
-      id: 3,
-      title: 'Como resolver equações diferenciais?',
-      votes: 32,
-      session: 'Matemática Discreta',
-      answered: false
-    },
-    {
-      id: 4,
-      title: 'O que é complexidade de algoritmo?',
-      votes: 29,
-      session: 'Algoritmos Avançados',
-      answered: false
-    }
-  ],
-  userActivity: [
-    {
-      id: 1,
-      name: 'João Silva',
-      action: 'criou uma pergunta',
-      time: '5 minutos atrás',
-      avatar: 'https://xsgames.co/randomusers/avatar.php?g=male'
-    },
-    {
-      id: 2,
-      name: 'Maria Oliveira',
-      action: 'respondeu um questionário',
-      time: '15 minutos atrás',
-      avatar: 'https://xsgames.co/randomusers/avatar.php?g=female'
-    },
-    {
-      id: 3,
-      name: 'Pedro Santos',
-      action: 'entrou em uma sessão',
-      time: '30 minutos atrás',
-      avatar: 'https://xsgames.co/randomusers/avatar.php?g=male'
-    },
-    {
-      id: 4,
-      name: 'Ana Costa',
-      action: 'criou um questionário',
-      time: '1 hora atrás',
-      avatar: 'https://xsgames.co/randomusers/avatar.php?g=female'
-    }
-  ]
-};
-
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const sessionModal = useModal();
   const questionnaireModal = useModal();
   const bankQuestionModal = useModal();
   const messageApi = useGlobalMessage();
+  const navigate = useNavigate();
+
   const { data: sessions } = useGetAllSessions();
   const { data: questionnaires, refetch } = useGetAllQuestionnaires();
   const { data: bankQuestions } = bankQuestionHooks.usePaginated({
@@ -171,6 +41,7 @@ const Dashboard = () => {
       limit: 20
     }
   });
+  const { data: users } = useGetAllUsers();
 
   const actionButtons = [
     {
@@ -209,10 +80,7 @@ const Dashboard = () => {
 
       <Row gutter={[24, 24]} className="mb-8">
         <Col span={24}>
-          <Card
-            className="border-0 shadow-sm bg-gradient-to-r from-gray-50 to-white"
-            style={{ padding: '20px' }}
-          >
+          <Card className="border border-gray-100 rounded-lg shadow-sm bg-gradient-to-r from-gray-50 to-white">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div>
                 <Title level={5} className="mb-1 font-medium text-gray-700">
@@ -248,49 +116,33 @@ const Dashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <StatsCard
             title="Usuários"
-            value={mockData.stats.totalUsers}
+            value={users?.length ?? 0}
             icon={<User className="w-5 h-5 text-teal-500" />}
             valueStyle={{ color: '#111827' }}
-            trend={{
-              value: '12% a mais que o mês passado',
-              isPositive: true
-            }}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
           <StatsCard
             title="Sessões Criadas"
-            value={mockData.stats.totalSessions}
+            value={sessions?.length ?? 0}
             icon={<Users className="w-5 h-5 text-cyan-500" />}
             valueStyle={{ color: '#111827' }}
-            trend={{
-              value: '8% a mais que o mês passado',
-              isPositive: true
-            }}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
           <StatsCard
             title="Banco de Questões"
-            value={mockData.stats.totalQuestions}
+            value={bankQuestions?.length ?? 0}
             icon={<HelpCircle className="w-5 h-5 text-emerald-500" />}
             valueStyle={{ color: '#111827' }}
-            trend={{
-              value: '15% a mais que o mês passado',
-              isPositive: true
-            }}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
           <StatsCard
             title="Questionários"
-            value={mockData.stats.totalQuestionnaires}
+            value={questionnaires?.length ?? 0}
             icon={<FileText className="w-5 h-5 text-sky-500" />}
             valueStyle={{ color: '#111827' }}
-            trend={{
-              value: `${mockData.stats.activeQuestionnaires} ativos`,
-              isPositive: true
-            }}
           />
         </Col>
       </Row>
@@ -305,13 +157,14 @@ const Dashboard = () => {
             <Col span={24}>
               <div className="flex items-center justify-between">
                 <Title level={5} className="mb-0 font-medium text-gray-700">
-                  Sessões Recentes
+                  Sessões
                 </Title>
                 <Button
                   type="link"
                   size="small"
                   className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1"
                   icon={<TrendingUp size={14} />}
+                  onClick={() => navigate('/sessoes/lista')}
                 >
                   Ver todas
                 </Button>
@@ -322,6 +175,7 @@ const Dashboard = () => {
               sessions.slice(0, 4).map((session) => (
                 <Col xs={24} sm={12} md={8} lg={6} key={session.id}>
                   <SessionCard
+                    id={session.id}
                     title={session.title}
                     participants={session.sessionUsers?.length ?? 0}
                     questions={session.questions?.length ?? 0}
@@ -338,16 +192,17 @@ const Dashboard = () => {
               </Col>
             )}
 
-            <Col span={24} className="mt-8">
+            <Col span={24} className="mt-4">
               <div className="flex items-center justify-between">
                 <Title level={5} className="mb-0 font-medium text-gray-700">
-                  Questionários Recentes
+                  Questionários
                 </Title>
                 <Button
                   type="link"
                   size="small"
                   className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1"
                   icon={<TrendingUp size={14} />}
+                  onClick={() => navigate('/questionarios/lista')}
                 >
                   Ver todos
                 </Button>
@@ -357,7 +212,11 @@ const Dashboard = () => {
             {questionnaires ? (
               questionnaires.map((questionnaire) => (
                 <Col xs={24} sm={12} md={8} key={questionnaire.id}>
-                  <QuestionnaireCard questionnaire={questionnaire} />
+                  <QuestionnaireCard
+                    questionnaire={questionnaire}
+                    onView={(id) => console.log('View questionnaire', id)}
+                    onEdit={(id) => console.log('Edit questionnaire', id)}
+                  />
                 </Col>
               ))
             ) : (
@@ -376,10 +235,12 @@ const Dashboard = () => {
       <CreateSessionModal
         visible={sessionModal.isVisible}
         onClose={sessionModal.close}
+        messageApi={messageApi}
       />
       <CreateQuestionnaireModal
         visible={questionnaireModal.isVisible}
         onClose={questionnaireModal.close}
+        messageApi={messageApi}
         onSuccess={refetch}
         bankQuestions={bankQuestions ?? []}
       />

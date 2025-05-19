@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import {
   Layout,
   Menu,
@@ -6,35 +7,32 @@ import {
   type MenuProps,
   Avatar,
   Dropdown,
-  Drawer,
-  Badge
+  Drawer
 } from 'antd';
 import { Link } from 'react-router';
 import {
   LayoutDashboard,
-  Users,
   BookOpen,
   HelpCircle,
   FileQuestion,
   MenuIcon,
   ChevronLeft,
-  Bell,
   User,
   Settings,
   LogOut
 } from 'lucide-react';
 import { useMediaQuery } from '../hooks/use-mobile';
-import { useAuth } from '../../features/auth/hooks/use-auth';
 import LoadingFallback from './loading-fallback';
 import { useLayoutLoading } from '../hooks/use-layout';
+import { useAuth } from '../../features/auth/hooks/use-auth';
 
 const { Header, Content, Sider } = Layout;
 
-type PageLayoutPropsType = {
-  readonly children: React.ReactNode;
-};
+interface PageLayoutProps {
+  children: React.ReactNode;
+}
 
-const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
+const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const { logout, user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -48,23 +46,18 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
     },
     {
       key: '2',
-      icon: <Users size={18} />,
-      label: <Link to={'/usuarios'}>Usuários</Link>
+      icon: <BookOpen size={18} />,
+      label: <Link to={'/sessoes/lista'}>Sessões</Link>
     },
     {
       key: '3',
-      icon: <BookOpen size={18} />,
-      label: <Link to={'/sessoes'}>Sessões</Link>
+      icon: <HelpCircle size={18} />,
+      label: <Link to={'/banco-questoes/lista'}>Banco de questões</Link>
     },
     {
       key: '4',
-      icon: <HelpCircle size={18} />,
-      label: <Link to={'/banco-questoes'}>Banco de questões</Link>
-    },
-    {
-      key: '5',
       icon: <FileQuestion size={18} />,
-      label: <Link to={'/questionarios'}>Questionários</Link>
+      label: <Link to={'/questionarios/lista'}>Questionários</Link>
     }
   ];
 
@@ -99,7 +92,7 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
       {!isMobile && (
         <Sider
           width={240}
-          className="h-screen overflow-hidden shadow-sm"
+          className="h-screen overflow-hidden border-r border-gray-100"
           collapsed={collapsed}
           collapsedWidth={80}
           trigger={null}
@@ -107,15 +100,17 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
           style={{
             position: 'sticky',
             left: 0,
-            top: 0,
-            borderRight: '1px solid rgba(0, 0, 0, 0.06)'
+            top: 0
           }}
         >
-          <div className="p-4 flex items-center justify-center h-16 border-b border-gray-100">
+          <Link
+            to={'/'}
+            className="p-4 flex items-center justify-center h-16 border-b border-gray-100 cursor-pointer"
+          >
             <h1 className="text-lg font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
               {!collapsed ? 'QRious' : 'QR'}
             </h1>
-          </div>
+          </Link>
           <Menu
             mode="inline"
             defaultSelectedKeys={['1']}
@@ -132,11 +127,11 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
           onClose={() => setCollapsed(true)}
           open={!collapsed}
           width={240}
-          style={{ padding: 0 }}
+          className="p-0!"
         >
           <div className="p-4 flex items-center justify-between h-16 border-b border-gray-100">
             <h1 className="text-lg font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
-              EduSystem
+              QRious
             </h1>
             <Button
               type="text"
@@ -154,7 +149,7 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
       )}
 
       <Layout>
-        <Header className="px-4 shadow-sm sticky top-0 z-10 flex items-center justify-between w-full h-16 bg-white!">
+        <Header className="px-4 bg-white! shadow-sm border-b border-gray-100 sticky top-0 z-10 flex items-center justify-between w-full h-16">
           <div className="flex items-center">
             <Button
               type="text"
@@ -165,15 +160,6 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <Badge count={3} size="small">
-              <Button
-                type="text"
-                shape="circle"
-                icon={<Bell size={18} />}
-                className="flex items-center justify-center"
-              />
-            </Badge>
-
             <Dropdown
               menu={{ items: userMenuItems }}
               trigger={['click']}
@@ -201,14 +187,14 @@ const PageLayout: React.FC<PageLayoutPropsType> = ({ children }) => {
 
         <Content
           className="overflow-auto relative"
-          style={{ height: 'calc(100vh - 64px)' }}
+          style={{ height: 'calc(100vh - 80px)' }}
         >
           {isLoading ? (
             <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50">
               <LoadingFallback />
             </div>
           ) : (
-            <div className="m-4 p-6 shadow-sm rounded-md bg-white">
+            <div className="m-4 p-6 bg-white border border-gray-100 rounded-lg shadow-sm">
               {children}
             </div>
           )}

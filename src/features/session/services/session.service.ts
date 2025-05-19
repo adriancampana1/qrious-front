@@ -1,5 +1,6 @@
 import { apiClient } from '../../../shared/services/api.service';
 import type { CreateSessionDto } from '../dto/create-session.dto';
+import type { JoinSessionDto } from '../dto/join-session.dto';
 import type { SessionWithRelations } from '../interfaces/session';
 
 export class SessionService {
@@ -32,10 +33,12 @@ export class SessionService {
   }
 
   async joinSession(
-    id: number
+    id: number,
+    joinSessionDto: JoinSessionDto
   ): Promise<{ success: boolean; message: string }> {
     return apiClient.post<{ success: boolean; message: string }>(
-      `${this.baseEndpoint}/${id}/join`
+      `${this.baseEndpoint}/${id}/participants/join`,
+      joinSessionDto
     );
   }
 

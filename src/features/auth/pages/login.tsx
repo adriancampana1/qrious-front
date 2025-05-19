@@ -7,12 +7,13 @@ import {
   MailOutlined
 } from '@ant-design/icons';
 import AuthLayout, { type AuthFormValues } from '../components/auth-layout';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../hooks/use-auth';
 
 export default function Login() {
   const { login, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogin = async (values: AuthFormValues) => {
     await login({
@@ -23,9 +24,16 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      const lastPath = sessionStorage.getItem('lastPath');
+      const locationState = location.state as {
+        from?: { pathname: string };
+      } | null;
+      const returnUrl = locationState?.from?.pathname || lastPath || '/';
+
+      sessionStorage.removeItem('lastPath');
+      navigate(returnUrl);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location]);
 
   return (
     <AuthLayout

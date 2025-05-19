@@ -5,6 +5,11 @@ import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
+export interface BankQuestion {
+  id: number;
+  content: string;
+}
+
 export interface Questionnaire {
   id: number;
   title: string;
@@ -28,11 +33,6 @@ export interface Questionnaire {
   }[];
   status?: 'active' | 'ended' | 'draft';
   completionRate?: number;
-}
-
-interface BankQuestion {
-  id: number;
-  content: string;
 }
 
 interface QuestionnaireCardProps {
@@ -83,15 +83,12 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
   };
 
   return (
-    <Card
-      hoverable
-      className="h-full border-0 overflow-hidden transition-all duration-300 hover:shadow bg-white shadow-sm p-4"
-    >
+    <Card className="h-full border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 bg-white">
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-start mb-3">
-          <Tooltip title={`Criado ${formattedCreatedAt}`}>
+          <Tooltip title={`Criado em ${formattedCreatedAt}`}>
             <div className="flex items-center text-xs text-gray-500">
-              <Calendar className="w-3.5 h-3.5 mr-1" />
+              <Calendar className="w-3.5 h-3.5 mr-1.5" />
               {formattedCreatedAt}
             </div>
           </Tooltip>
@@ -102,9 +99,7 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
         </h3>
 
         <div className="flex flex-col mb-3">
-          <Text type="secondary" className="text-xs mb-1 text-gray-500">
-            {theme}
-          </Text>
+          <Text className="text-xs mb-1 text-gray-500">{theme}</Text>
 
           {description && (
             <Text className="text-xs text-gray-600 line-clamp-2 mb-2">
@@ -140,11 +135,11 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
           </div>
         )}
 
-        <div className="flex justify-end gap-2 mt-auto pt-2">
+        <div className="flex justify-end gap-2 mt-auto pt-3">
           <Button
             type="text"
             size="small"
-            className="text-xs px-3 py-1 flex items-center text-gray-600 hover:text-gray-900"
+            className="text-xs px-3 py-1 flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             icon={<Eye className="w-3.5 h-3.5 mr-1.5" />}
             onClick={handleView}
           >
@@ -153,7 +148,7 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
           <Button
             type="text"
             size="small"
-            className="text-xs px-3 py-1 flex items-center text-gray-600 hover:text-gray-900"
+            className="text-xs px-3 py-1 flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             icon={<Edit className="w-3.5 h-3.5 mr-1.5" />}
             onClick={handleEdit}
           >

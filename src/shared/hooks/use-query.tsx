@@ -1,9 +1,6 @@
-'use client';
-
 import { useCallback, useEffect, useState } from 'react';
 import { useLayoutLoading } from './use-layout';
 
-// Interface para representar dados paginados
 export interface PaginatedResponse<T> {
   data: T[];
   meta: {
@@ -16,12 +13,10 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// Tipo para representar uma resposta que pode ser paginada ou não
 export type ApiResponse<T> =
   | T
   | PaginatedResponse<T extends Array<infer U> ? U : never>;
 
-// Função auxiliar para verificar se uma resposta é paginada
 export function isPaginatedResponse<T>(
   response: unknown
 ): response is PaginatedResponse<T> {
@@ -57,7 +52,7 @@ export interface QueryResult<TData> {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-  pagination?: PaginationMeta; // Metadados de paginação (opcional)
+  pagination?: PaginationMeta;
 }
 
 export function useQuery<TData, TParams = void>(
@@ -85,11 +80,9 @@ export function useQuery<TData, TParams = void>(
       setError(null);
       const response = await queryFn(params);
 
-      // Verifica se a resposta é paginada
       if (
         isPaginatedResponse<TData extends Array<infer U> ? U : never>(response)
       ) {
-        // Se for paginada, extrai os dados e os metadados
         const typedData = response.data as unknown as TData;
         setData(typedData);
         setPagination(response.meta);
@@ -98,7 +91,6 @@ export function useQuery<TData, TParams = void>(
         }
         return response.data;
       } else {
-        // Se não for paginada, usa a resposta diretamente
         setData(response as TData);
         setPagination(undefined);
         if (onSuccess) {

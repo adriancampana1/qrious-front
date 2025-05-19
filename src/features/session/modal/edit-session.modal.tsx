@@ -1,58 +1,78 @@
+'use client';
+
 import { Button, DatePicker, Form, Input, InputNumber, Modal } from 'antd';
-import { useLayoutLoading } from '../../../shared/hooks/use-layout';
-import type dayjs from 'dayjs';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { sessionService } from '../services/session.service';
 import type { MessageInstance } from 'antd/es/message/interface';
+import type { Session } from '../interfaces/session';
+import dayjs from 'dayjs';
+import { useLayoutLoading } from '../../../shared/hooks/use-layout';
 
-type CreateSessionModalPropsType = {
+type EditSessionModalPropsType = {
   visible: boolean;
   readonly onClose: () => void;
+  session: Session | null;
   messageApi?: MessageInstance;
   refetch?: () => void;
 };
 
-type CreateSessionFormValuesType = {
+type EditSessionFormValuesType = {
   title: string;
   description: string;
   userLimit: number;
   activePeriod: [dayjs.Dayjs, dayjs.Dayjs];
 };
 
-const CreateSessionModal = ({
+const EditSessionModal = ({
   visible,
   onClose,
+  session,
   messageApi,
   refetch
-}: CreateSessionModalPropsType) => {
+}: EditSessionModalPropsType) => {
   const { isLoading, setLoading } = useLayoutLoading();
-  const [form] = Form.useForm<CreateSessionFormValuesType>();
+  const [form] = Form.useForm<EditSessionFormValuesType>();
+
+  useEffect(() => {
+    if (visible && session) {
+      form.setFieldsValue({
+        title: session.title,
+        description: session.description || '',
+        userLimit: session.userLimit || undefined,
+        activePeriod: [dayjs(session.activeFrom), dayjs(session.activeTo)]
+      });
+    }
+  }, [visible, session, form]);
 
   const handleSubmit = useCallback(
-    async (values: CreateSessionFormValuesType) => {
+    async (values: EditSessionFormValuesType) => {
+      if (!session) return;
+
       form.validateFields();
 
       setLoading(true);
       try {
-        const sessionResponse = await sessionService.createSession({
+        const sessionResponse = await sessionService.updateSession(session.id, {
           title: values.title,
           description: values.description,
           userLimit: values.userLimit,
           activeFrom: values.activePeriod[0].toISOString(),
           activeTo: values.activePeriod[1].toISOString()
         });
+
         if (sessionResponse) {
           onClose();
-          messageApi?.success('Sessão criada com sucesso!');
+          messageApi?.success('Sessão atualizada com sucesso!');
           refetch?.();
         }
       } catch (error) {
-        console.error('Falha ao criar a sessão: ', error);
+        console.error('Falha ao atualizar a sessão: ', error);
+        messageApi?.error('Erro ao atualizar sessão. Tente novamente.');
       } finally {
         setLoading(false);
       }
     },
-    [messageApi, onClose, setLoading, form]
+    [messageApi, onClose, setLoading, form, session]
   );
 
   const handleButtonSubmit = useCallback(() => {
@@ -65,7 +85,7 @@ const CreateSessionModal = ({
       onClose={onClose}
       onCancel={onClose}
       open={visible}
-      title="Nova sessão"
+      title="Editar sessão"
       width={800}
       footer={[
         <Button
@@ -82,16 +102,16 @@ const CreateSessionModal = ({
           disabled={isLoading}
           loading={isLoading}
           type="primary"
+          className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0"
         >
-          Confirmar
+          Salvar alterações
         </Button>
       ]}
     >
       <Form
         form={form}
         layout="vertical"
-        name="create-session"
-        initialValues={{ remember: true }}
+        name="edit-session"
         autoComplete="off"
         onFinish={handleSubmit}
       >
@@ -137,12 +157,26 @@ const CreateSessionModal = ({
             placeholder="Número máximo de participantes na sessão"
           />
         </Form.Item>
-        <Form.Item label="Período de validade da sessão" name="activePeriod">
-          <DatePicker.RangePicker className="h-12 w-full" />
+        <Form.Item
+          label="Período de validade da sessão"
+          name="activePeriod"
+          required
+          rules={[
+            {
+              required: true,
+              message: 'Por favor, selecione o período de validade da sessão!'
+            }
+          ]}
+        >
+          <DatePicker.RangePicker
+            className="h-12 w-full"
+            showTime={{ format: 'HH:mm' }}
+            format="DD/MM/YYYY HH:mm"
+          />
         </Form.Item>
       </Form>
     </Modal>
   );
 };
 
-export default CreateSessionModal;
+export default EditSessionModal;

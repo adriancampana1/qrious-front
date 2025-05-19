@@ -19,7 +19,7 @@ export interface SessionWithRelations extends Session {
   };
   access?: {
     id: number;
-    type: string;
+    type: SessionAccessType;
     value: string;
   }[];
   questions?: {
@@ -55,3 +55,12 @@ export interface SessionWithRelations extends Session {
     };
   }[];
 }
+
+export const SessionAccessType = {
+  QR: 'qr',
+  CODE: 'code',
+  LINK: 'link'
+} as const;
+
+export type SessionAccessType =
+  (typeof SessionAccessType)[keyof typeof SessionAccessType];

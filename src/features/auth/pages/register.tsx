@@ -12,13 +12,17 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../hooks/use-auth';
 
 export default function Register() {
-  const { register, isLoading, isAuthenticated } = useAuth();
+  const { login, register, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = async (values: RegisterFormValues) => {
     await register({
       email: values.email,
       name: values.name,
+      password: values.password
+    });
+    await login({
+      email: values.email,
       password: values.password
     });
   };
