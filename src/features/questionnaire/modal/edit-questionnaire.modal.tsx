@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Button,
   Checkbox,
@@ -8,20 +10,22 @@ import {
   Select
 } from 'antd';
 import type { MessageInstance } from 'antd/es/message/interface';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useLayoutLoading } from '../../../shared/hooks/use-layout';
 import { questionnaireService } from '../services/questionnaire.service';
 import type { BankQuestion } from '../../bank-question/interfaces/bank-question';
+import type { Questionnaire } from '../interfaces/questionnaire';
 
-type CreateQuestionnaireModalPropsType = {
+type EditQuestionnaireModalPropsType = {
   visible: boolean;
   readonly onClose: () => void;
   messageApi?: MessageInstance;
   onSuccess?: () => void;
   bankQuestions: BankQuestion[] | null;
+  questionnaire: Questionnaire | null;
 };
 
-type CreateQuestionnaireFormValuesType = {
+type EditQuestionnaireFormValuesType = {
   title: string;
   theme: string;
   description: string;
@@ -31,24 +35,42 @@ type CreateQuestionnaireFormValuesType = {
   bankQuestionIds: number[];
 };
 
-const CreateQuestionnaireModal = ({
+const EditQuestionnaireModal = ({
   visible,
   onClose,
   messageApi,
   onSuccess,
-  bankQuestions
-}: CreateQuestionnaireModalPropsType) => {
+  bankQuestions,
+  questionnaire
+}: EditQuestionnaireModalPropsType) => {
   const { isLoading, setLoading } = useLayoutLoading();
-  const [form] = Form.useForm<CreateQuestionnaireFormValuesType>();
+  const [form] = Form.useForm<EditQuestionnaireFormValuesType>();
+
+  useEffect(() => {
+    if (questionnaire && visible) {
+      form.setFieldsValue({
+        title: questionnaire.title,
+        theme: questionnaire.theme,
+        description: questionnaire.description,
+        numQuestions: questionnaire.numQuestions,
+        timeLimitMinutes: questionnaire.timeLimitMinutes ?? undefined,
+        showAnswersAfterSubmission: questionnaire.showAnswersAfterSubmission,
+        bankQuestionIds:
+          questionnaire.items?.map((item) => item.bankQuestionId) || []
+      });
+    }
+  }, [questionnaire, form, visible]);
 
   const handleSubmit = useCallback(
-    async (values: CreateQuestionnaireFormValuesType) => {
+    async (values: EditQuestionnaireFormValuesType) => {
+      if (!questionnaire) return;
+
       try {
         await form.validateFields();
         setLoading(true);
 
         const questionnaireResponse =
-          await questionnaireService.createQuestionnaire({
+          await questionnaireService.updateQuestionnaire(questionnaire.id, {
             title: values.title,
             theme: values.theme,
             description: values.description,
@@ -59,23 +81,24 @@ const CreateQuestionnaireModal = ({
           });
 
         if (questionnaireResponse) {
-          form.resetFields();
           onClose();
           onSuccess?.();
-          messageApi?.success('Questionário criado com sucesso!');
+          messageApi?.success('Questionário atualizado com sucesso!');
         }
       } catch (error) {
-        let errorMsg = 'Erro ao criar questionário';
+        let errorMsg = 'Erro ao atualizar questionário';
         if (error instanceof Error) {
           errorMsg = error.message;
         }
         setTimeout(() => {
-          messageApi?.error(`Erro ao criar questionário: ${errorMsg}`);
+          messageApi?.error(`Erro ao atualizar questionário: ${errorMsg}`);
         }, 100);
-        console.error('Falha ao criar questionário:', error);
+        console.error('Falha ao atualizar questionário:', error);
+      } finally {
+        setLoading(false);
       }
     },
-    [form, onClose, setLoading, messageApi, onSuccess]
+    [form, onClose, setLoading, messageApi, onSuccess, questionnaire]
   );
 
   return (
@@ -83,7 +106,7 @@ const CreateQuestionnaireModal = ({
       centered
       onCancel={onClose}
       open={visible}
-      title="Novo questionário"
+      title="Editar questionário"
       width={800}
       footer={[
         <Button
@@ -101,15 +124,14 @@ const CreateQuestionnaireModal = ({
           loading={isLoading}
           type="primary"
         >
-          Confirmar
+          Salvar alterações
         </Button>
       ]}
     >
       <Form
         form={form}
         layout="vertical"
-        name="create-questionnaire"
-        initialValues={{ remember: true, showAnswersAfterSubmission: false }}
+        name="edit-questionnaire"
         autoComplete="off"
         onFinish={handleSubmit}
       >
@@ -231,4 +253,4 @@ const CreateQuestionnaireModal = ({
   );
 };
 
-export default CreateQuestionnaireModal;
+export default EditQuestionnaireModal;

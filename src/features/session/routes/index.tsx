@@ -22,7 +22,7 @@ export const sessionRoutes: RouteObject[] = [
         )
       },
       {
-        path: 'entrar/:id',
+        path: 'entrar',
         element: (
           <ProtectedRoute>
             <Suspense fallback={<LoadingFallback />}>

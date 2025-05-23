@@ -1,37 +1,59 @@
+'use client';
+
 import type React from 'react';
 import { useState } from 'react';
 import {
   Typography,
   Button,
   Input,
-  Row,
-  Col,
+  Table,
   Card,
+  Dropdown,
   Empty,
   Pagination,
-  Select,
-  Segmented
+  type TableProps
 } from 'antd';
-import { Plus, Search, Filter, Grid, List } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  Calendar,
+  User
+} from 'lucide-react';
 import { useModal } from '../../../shared/hooks/use-modal';
-import { useGetAllQuestionnaires } from '../hooks/use-questionnaire';
+import { useGlobalMessage } from '../../../shared/hooks/use-message';
+import { questionnaireHooks } from '../hooks/use-questionnaire';
 import { bankQuestionHooks } from '../../bank-question/hooks/use-bank-question';
+import type { Questionnaire } from '../interfaces/questionnaire';
 import PageLayout from '../../../shared/components/page-layout';
-import QuestionnaireCard from '../components/questionnaire-card';
 import CreateQuestionnaireModal from '../modal/create-questionnaire.modal';
+import EditQuestionnaireModal from '../modal/edit-questionnaire.modal';
+import { questionnaireService } from '../services/questionnaire.service';
+import ConfirmationModal from '../../../shared/modal/delete-confirmation.modal';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const QuestionnairesPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-  const [viewMode, setViewMode] = useState<string | number>('grid');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedQuestionnaire, setSelectedQuestionnaire] =
+    useState<Questionnaire | null>(null);
+  const createQuestionnaireModal = useModal();
+  const editQuestionnaireModal = useModal();
+  const deleteModal = useModal();
+  const messageApi = useGlobalMessage();
 
-  const questionnaireModal = useModal();
-  const { data: questionnaires, refetch } = useGetAllQuestionnaires();
+  const {
+    data: questionnaires,
+    isLoading,
+    refetch
+  } = questionnaireHooks.useGetAll();
+
   const { data: bankQuestions } = bankQuestionHooks.usePaginated({
     params: {
       page: 1,
@@ -39,31 +61,160 @@ const QuestionnairesPage: React.FC = () => {
     }
   });
 
+  const handleEditQuestionnaire = (questionnaire: Questionnaire) => {
+    setSelectedQuestionnaire(questionnaire);
+    editQuestionnaireModal.open();
+  };
+
+  const handleDeleteModal = (questionnaire: Questionnaire) => {
+    setSelectedQuestionnaire(questionnaire);
+    deleteModal.open();
+  };
+
+  const handleDeleteQuestionnaire = async () => {
+    if (!selectedQuestionnaire) return;
+
+    await questionnaireService.deleteQuestionnaire(
+      Number(selectedQuestionnaire.id)
+    );
+  };
+
   const filteredQuestionnaires =
-    questionnaires?.filter((questionnaire) => {
-      const matchesSearch =
+    questionnaires?.filter(
+      (questionnaire) =>
         questionnaire.title.toLowerCase().includes(searchText.toLowerCase()) ||
         questionnaire.theme.toLowerCase().includes(searchText.toLowerCase()) ||
-        (questionnaire.description &&
-          questionnaire.description
-            .toLowerCase()
-            .includes(searchText.toLowerCase()));
-
-      return matchesSearch;
-    }) || [];
+        questionnaire.description
+          .toLowerCase()
+          .includes(searchText.toLowerCase())
+    ) || [];
 
   const paginatedQuestionnaires = filteredQuestionnaires.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  const handleViewQuestionnaire = (id: number) => {
-    console.log('View questionnaire', id);
-  };
-
-  const handleEditQuestionnaire = (id: number) => {
-    console.log('Edit questionnaire', id);
-  };
+  const columns: TableProps<Questionnaire>['columns'] = [
+    {
+      title: 'Título',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text, record) => (
+        <div className="max-w-xl">
+          <div className="flex items-center gap-2 mb-1">
+            <Text className="text-gray-800 font-medium">{text}</Text>
+          </div>
+          <Text className="text-gray-600 text-sm line-clamp-2">
+            {record.description}
+          </Text>
+          <div className="mt-2 flex gap-2">
+            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+              {record.theme}
+            </span>
+            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">
+              {record.numQuestions} questões
+            </span>
+            {record.timeLimitMinutes && (
+              <span className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-600 rounded-full">
+                {record.timeLimitMinutes} minutos
+              </span>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Criado por',
+      dataIndex: 'createdBy',
+      key: 'createdBy',
+      render: (createdBy) => (
+        <div className="flex items-center">
+          <User className="w-4 h-4 mr-2 text-gray-500" />
+          <span>{createdBy?.name || '—'}</span>
+        </div>
+      )
+    },
+    {
+      title: 'Data de Criação',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => (
+        <div className="flex items-center">
+          <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+          <span>{date ? new Date(date).toLocaleDateString('pt-BR') : '—'}</span>
+        </div>
+      )
+    },
+    {
+      title: 'Configurações',
+      key: 'settings',
+      render: (_, record) => (
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-2">
+              Mostrar respostas:
+            </span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${
+                record.showAnswersAfterSubmission
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-red-50 text-red-600'
+              }`}
+            >
+              {record.showAnswersAfterSubmission ? 'Sim' : 'Não'}
+            </span>
+          </div>
+          {record.timeLimitMinutes && (
+            <div className="flex items-center">
+              <span className="text-xs text-gray-500 mr-2">Tempo limite:</span>
+              <span className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-600 rounded-full">
+                {record.timeLimitMinutes} min
+              </span>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      title: 'Ações',
+      key: 'actions',
+      render: (_, record) => (
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: 'view',
+                label: 'Visualizar',
+                icon: <Eye className="w-4 h-4" />,
+                onClick: () => console.log('View questionnaire', record.id)
+              },
+              {
+                key: 'edit',
+                label: 'Editar',
+                icon: <Edit className="w-4 h-4" />,
+                onClick: () => handleEditQuestionnaire(record)
+              },
+              {
+                key: 'delete',
+                label: 'Excluir',
+                icon: <Trash2 className="w-4 h-4" />,
+                danger: true,
+                onClick: () => handleDeleteModal(record)
+              }
+            ]
+          }}
+          trigger={['click']}
+          placement="bottomRight"
+        >
+          <Button
+            type="text"
+            icon={<MoreHorizontal className="w-4 h-4" />}
+            className="flex items-center justify-center"
+          />
+        </Dropdown>
+      )
+    }
+  ];
 
   return (
     <PageLayout>
@@ -72,47 +223,20 @@ const QuestionnairesPage: React.FC = () => {
           Questionários
         </Title>
         <Text className="text-gray-500">
-          Gerencie todos os questionários do sistema
+          Gerencie todos os questionários disponíveis no sistema
         </Text>
       </div>
 
       <Card className="mb-6 border border-gray-100 rounded-lg shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <Input
-              placeholder="Buscar questionários..."
-              prefix={<Search className="w-4 h-4 text-gray-400" />}
-              className="max-w-md"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-            <Select
-              placeholder="Status"
-              className="min-w-[150px]"
-              value={statusFilter}
-              onChange={setStatusFilter}
-            >
-              <Option value="all">Todos</Option>
-              <Option value="active">Ativos</Option>
-              <Option value="ended">Finalizados</Option>
-              <Option value="draft">Rascunhos</Option>
-            </Select>
-          </div>
-          <div className="flex gap-3 items-center">
-            <Segmented
-              options={[
-                {
-                  value: 'grid',
-                  icon: <Grid className="w-4 h-4" />
-                },
-                {
-                  value: 'list',
-                  icon: <List className="w-4 h-4" />
-                }
-              ]}
-              value={viewMode}
-              onChange={setViewMode}
-            />
+          <Input
+            placeholder="Buscar questionários..."
+            prefix={<Search className="w-4 h-4 text-gray-400" />}
+            className="max-w-md"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <div className="flex gap-3">
             <Button
               icon={<Filter className="w-4 h-4" />}
               className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
@@ -122,7 +246,7 @@ const QuestionnairesPage: React.FC = () => {
             <Button
               type="primary"
               icon={<Plus className="w-4 h-4" />}
-              onClick={questionnaireModal.open}
+              onClick={createQuestionnaireModal.open}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
               Novo Questionário
@@ -134,80 +258,15 @@ const QuestionnairesPage: React.FC = () => {
       <Card className="border border-gray-100 rounded-lg shadow-sm">
         {filteredQuestionnaires.length > 0 ? (
           <>
-            {viewMode === 'grid' ? (
-              <Row gutter={[24, 24]}>
-                {paginatedQuestionnaires.map((questionnaire) => (
-                  <Col xs={24} sm={12} md={8} lg={6} key={questionnaire.id}>
-                    <QuestionnaireCard
-                      questionnaire={questionnaire}
-                      onView={handleViewQuestionnaire}
-                      onEdit={handleEditQuestionnaire}
-                    />
-                  </Col>
-                ))}
-              </Row>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {paginatedQuestionnaires.map((questionnaire) => (
-                  <Card
-                    key={questionnaire.id}
-                    className="border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <Title level={5} className="mb-1">
-                          {questionnaire.title}
-                        </Title>
-                        <Text className="text-gray-500 block mb-2">
-                          {questionnaire.theme}
-                        </Text>
-                        {questionnaire.description && (
-                          <Text className="text-gray-600 text-sm line-clamp-2">
-                            {questionnaire.description}
-                          </Text>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-end">
-                          <Text className="text-gray-500 text-sm">
-                            {questionnaire.numQuestions ||
-                              questionnaire.items?.length ||
-                              0}{' '}
-                            questões
-                          </Text>
-                          <Text className="text-gray-500 text-sm">
-                            Criado em{' '}
-                            {new Date(
-                              questionnaire.createdAt
-                            ).toLocaleDateString('pt-BR')}
-                          </Text>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            type="default"
-                            onClick={() =>
-                              handleViewQuestionnaire(questionnaire.id)
-                            }
-                          >
-                            Ver
-                          </Button>
-                          <Button
-                            type="primary"
-                            onClick={() =>
-                              handleEditQuestionnaire(questionnaire.id)
-                            }
-                            className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0"
-                          >
-                            Editar
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-            <div className="flex justify-end mt-6">
+            <Table
+              dataSource={paginatedQuestionnaires}
+              columns={columns}
+              rowKey="id"
+              loading={isLoading}
+              pagination={false}
+              className="mb-4"
+            />
+            <div className="flex justify-end">
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
@@ -236,10 +295,35 @@ const QuestionnairesPage: React.FC = () => {
       </Card>
 
       <CreateQuestionnaireModal
-        visible={questionnaireModal.isVisible}
-        onClose={questionnaireModal.close}
+        visible={createQuestionnaireModal.isVisible}
+        onClose={createQuestionnaireModal.close}
+        messageApi={messageApi}
         onSuccess={refetch}
-        bankQuestions={bankQuestions ?? []}
+        bankQuestions={bankQuestions}
+      />
+
+      <EditQuestionnaireModal
+        visible={editQuestionnaireModal.isVisible}
+        onClose={editQuestionnaireModal.close}
+        messageApi={messageApi}
+        onSuccess={refetch}
+        bankQuestions={bankQuestions}
+        questionnaire={selectedQuestionnaire}
+      />
+
+      <ConfirmationModal
+        visible={deleteModal.isVisible}
+        onClose={deleteModal.close}
+        title="Excluir Sessão"
+        description="Tem certeza que deseja excluir este questionário? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteQuestionnaire}
+        messageApi={messageApi}
+        successMessage="Questionário excluído com sucesso!"
+        errorMessage="Erro ao excluir questionário. Tente novamente."
+        refetch={refetch}
+        danger={true}
       />
     </PageLayout>
   );

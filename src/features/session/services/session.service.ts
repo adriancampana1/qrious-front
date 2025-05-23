@@ -1,5 +1,6 @@
 import { apiClient } from '../../../shared/services/api.service';
 import type { CreateSessionDto } from '../dto/create-session.dto';
+import type { FindSessionByAccessDto } from '../dto/find-session-by-access.dto';
 import type { JoinSessionDto } from '../dto/join-session.dto';
 import type { SessionWithRelations } from '../interfaces/session';
 
@@ -12,6 +13,15 @@ export class SessionService {
 
   async getSessionById(id: number): Promise<SessionWithRelations> {
     return apiClient.get<SessionWithRelations>(`${this.baseEndpoint}/${id}`);
+  }
+
+  async getSessionByCode(
+    findSessionByAccessDto: FindSessionByAccessDto
+  ): Promise<SessionWithRelations> {
+    return apiClient.post<SessionWithRelations>(
+      `${this.baseEndpoint}/find`,
+      findSessionByAccessDto
+    );
   }
 
   async createSession(data: CreateSessionDto): Promise<SessionWithRelations> {

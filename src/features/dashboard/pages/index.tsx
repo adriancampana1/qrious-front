@@ -59,11 +59,6 @@ const Dashboard: React.FC = () => {
       title: 'Adicionar Questão',
       icon: <Plus className="w-4 h-4" />,
       onClick: bankQuestionModal.open
-    },
-    {
-      title: 'Gerenciar Usuários',
-      icon: <User className="w-4 h-4" />,
-      onClick: () => {}
     }
   ];
 
@@ -159,15 +154,24 @@ const Dashboard: React.FC = () => {
                 <Title level={5} className="mb-0 font-medium text-gray-700">
                   Sessões
                 </Title>
-                <Button
-                  type="link"
-                  size="small"
-                  className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1"
-                  icon={<TrendingUp size={14} />}
-                  onClick={() => navigate('/sessoes/lista')}
-                >
-                  Ver todas
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="link"
+                    size="small"
+                    className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                    icon={<TrendingUp size={14} />}
+                    onClick={() => navigate('/sessoes/lista')}
+                  >
+                    Ver todas
+                  </Button>
+                  <Button
+                    icon={<Plus size={14} />}
+                    type="primary"
+                    onClick={() => navigate('/sessoes/entrar')}
+                  >
+                    Entrar em uma sessão
+                  </Button>
+                </div>
               </div>
             </Col>
 
@@ -214,7 +218,7 @@ const Dashboard: React.FC = () => {
                 <Col xs={24} sm={12} md={8} key={questionnaire.id}>
                   <QuestionnaireCard
                     questionnaire={questionnaire}
-                    onView={(id) => console.log('View questionnaire', id)}
+                    onView={(id) => navigate(`/sessoes/sessao/${id}`)}
                     onEdit={(id) => console.log('Edit questionnaire', id)}
                   />
                 </Col>

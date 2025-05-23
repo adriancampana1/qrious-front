@@ -24,7 +24,8 @@ import {
   Trash2,
   Users,
   Calendar,
-  HelpCircle
+  HelpCircle,
+  ArrowRight
 } from 'lucide-react';
 import { useGetAllSessions } from '../hooks/use-session';
 import type { Session } from '../interfaces/session';
@@ -198,16 +199,25 @@ const SessionsPage: React.FC = () => {
             <Button
               icon={<Filter className="w-4 h-4" />}
               className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
+              type="dashed"
             >
               Filtros
             </Button>
             <Button
-              type="primary"
+              type="default"
               icon={<Plus className="w-4 h-4" />}
               onClick={sessionModal.open}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
               Nova Sessão
+            </Button>
+            <Button
+              type="primary"
+              icon={<ArrowRight className="w-4 h-4" />}
+              onClick={() => navigate('/sessoes/entrar')}
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
+            >
+              Entrar em uma sessão
             </Button>
           </div>
         </div>

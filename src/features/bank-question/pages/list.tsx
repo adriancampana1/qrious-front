@@ -16,7 +16,6 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  Eye,
   Edit,
   Trash2,
   Calendar,
@@ -28,6 +27,13 @@ import { bankQuestionHooks } from '../hooks/use-bank-question';
 import type { BankQuestion } from '../interfaces/bank-question';
 import PageLayout from '../../../shared/components/page-layout';
 import CreateBankQuestionModal from '../modal/create-bank-question.dto';
+import {
+  BankQuestionDifficulty,
+  BankQuestionType
+} from '../types/bank-question.types';
+import EditBankQuestionModal from '../dto/edit-bank-question.dto';
+import ConfirmationModal from '../../../shared/modal/delete-confirmation.modal';
+import { bankQuestionService } from '../services/bank-question.service';
 
 const { Title, Text } = Typography;
 
@@ -36,9 +42,19 @@ const BankQuestionsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const bankQuestionModal = useModal();
+  const editBankQuestionModal = useModal();
+  const deleteModal = useModal();
   const messageApi = useGlobalMessage();
 
-  const { data: bankQuestions, isLoading } = bankQuestionHooks.usePaginated({
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
+    null
+  );
+
+  const {
+    data: bankQuestions,
+    isLoading,
+    refetch
+  } = bankQuestionHooks.usePaginated({
     params: {
       page: 1,
       limit: 100
@@ -46,8 +62,16 @@ const BankQuestionsPage: React.FC = () => {
   });
 
   const filteredQuestions =
-    bankQuestions?.filter((question) =>
-      question.content.toLowerCase().includes(searchText.toLowerCase())
+    bankQuestions?.filter(
+      (question) =>
+        question.content.toLowerCase().includes(searchText.toLowerCase()) ||
+        question.theme.toLowerCase().includes(searchText.toLowerCase()) ||
+        (question.type === BankQuestionType.ESSAY &&
+          searchText.toLowerCase().includes('dissertativa')) ||
+        (question.type === BankQuestionType.SINGLE &&
+          searchText.toLowerCase().includes('única')) ||
+        (question.type === BankQuestionType.MULTIPLE &&
+          searchText.toLowerCase().includes('múltipla'))
     ) || [];
 
   const paginatedQuestions = filteredQuestions.slice(
@@ -60,9 +84,74 @@ const BankQuestionsPage: React.FC = () => {
       title: 'Conteúdo',
       dataIndex: 'content',
       key: 'content',
-      render: (text) => (
+      render: (text, record) => (
         <div className="max-w-xl">
-          <Text className="text-gray-800 line-clamp-2">{text}</Text>
+          <div className="flex items-center gap-2 mb-1">
+            <Text className="text-gray-800 line-clamp-2 flex-1">{text}</Text>
+          </div>
+
+          {record.type !== BankQuestionType.ESSAY &&
+          record.options &&
+          record.options.length > 0 ? (
+            <div className="mt-2 pl-2 border-l-2 border-gray-200">
+              <Text className="text-xs text-gray-500 mb-1 block">
+                {record.options.length} alternativa
+                {record.options.length !== 1 ? 's' : ''}
+                {record.type === BankQuestionType.SINGLE
+                  ? ' (resposta única)'
+                  : ' (múltipla escolha)'}
+              </Text>
+              <div className="space-y-1 max-h-20 overflow-y-auto pr-2">
+                {record.options.map((option, index) => (
+                  <div key={index} className="flex items-start gap-1.5">
+                    <div
+                      className={`min-w-4 h-4 rounded-full flex items-center justify-center text-xs ${
+                        option.isCorrect
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {record.type === BankQuestionType.SINGLE ? '○' : '□'}
+                    </div>
+                    <Text
+                      className="text-xs text-gray-700 line-clamp-1"
+                      style={{ fontWeight: option.isCorrect ? 500 : 400 }}
+                    >
+                      {option.content}
+                    </Text>
+                    {option.isCorrect && (
+                      <span className="text-xs text-green-600">✓</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : record.type !== BankQuestionType.ESSAY ? (
+            <Text className="text-xs text-gray-500 italic mt-1 block">
+              Sem alternativas cadastradas
+            </Text>
+          ) : null}
+
+          <div className="mt-2 flex gap-2">
+            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+              {record.theme}
+            </span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${
+                record.difficulty === BankQuestionDifficulty.EASY
+                  ? 'bg-green-50 text-green-600'
+                  : record.difficulty === BankQuestionDifficulty.MEDIUM
+                  ? 'bg-yellow-50 text-yellow-600'
+                  : 'bg-red-50 text-red-600'
+              }`}
+            >
+              {record.difficulty === BankQuestionDifficulty.EASY
+                ? 'Fácil'
+                : record.difficulty === BankQuestionDifficulty.MEDIUM
+                ? 'Médio'
+                : 'Difícil'}
+            </span>
+          </div>
         </div>
       )
     },
@@ -89,6 +178,36 @@ const BankQuestionsPage: React.FC = () => {
       )
     },
     {
+      title: 'Tipo',
+      key: 'type',
+      render: (_, record) => (
+        <div className="flex flex-col items-start">
+          <div
+            className={`px-2 py-1 rounded-md text-sm ${
+              record.type === BankQuestionType.ESSAY
+                ? 'bg-blue-50 text-blue-700'
+                : record.type === BankQuestionType.SINGLE
+                ? 'bg-green-50 text-green-700'
+                : 'bg-purple-50 text-purple-700'
+            }`}
+          >
+            {record.type === BankQuestionType.ESSAY
+              ? 'Dissertativa'
+              : record.type === BankQuestionType.SINGLE
+              ? 'Resposta Única'
+              : 'Múltipla Escolha'}
+          </div>
+
+          {record.type !== BankQuestionType.ESSAY && (
+            <div className="mt-1 text-xs text-gray-500">
+              {record._count?.options || 0} alternativa
+              {(record._count?.options || 0) !== 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       title: 'Ações',
       key: 'actions',
       render: (_, record) => (
@@ -96,23 +215,17 @@ const BankQuestionsPage: React.FC = () => {
           menu={{
             items: [
               {
-                key: 'view',
-                label: 'Visualizar',
-                icon: <Eye className="w-4 h-4" />,
-                onClick: () => console.log('View question', record.id)
-              },
-              {
                 key: 'edit',
                 label: 'Editar',
                 icon: <Edit className="w-4 h-4" />,
-                onClick: () => console.log('Edit question', record.id)
+                onClick: () => handleEditQuestion(record.id.toString())
               },
               {
                 key: 'delete',
                 label: 'Excluir',
                 icon: <Trash2 className="w-4 h-4" />,
                 danger: true,
-                onClick: () => console.log('Delete question', record.id)
+                onClick: () => handleDeleteModal(record.id.toString())
               }
             ]
           }}
@@ -128,6 +241,22 @@ const BankQuestionsPage: React.FC = () => {
       )
     }
   ];
+
+  const handleEditQuestion = (questionId: string) => {
+    setSelectedQuestionId(questionId);
+    editBankQuestionModal.open();
+  };
+
+  const handleDeleteModal = (questionId: string) => {
+    setSelectedQuestionId(questionId);
+    deleteModal.open();
+  };
+
+  const handleDeleteQuestion = async () => {
+    if (!selectedQuestionId) return;
+
+    await bankQuestionService.deleteBankQuestion(Number(selectedQuestionId));
+  };
 
   return (
     <PageLayout>
@@ -211,6 +340,29 @@ const BankQuestionsPage: React.FC = () => {
         visible={bankQuestionModal.isVisible}
         onClose={bankQuestionModal.close}
         messageApi={messageApi}
+        refetch={refetch}
+      />
+      <EditBankQuestionModal
+        visible={editBankQuestionModal.isVisible}
+        onClose={editBankQuestionModal.close}
+        messageApi={messageApi}
+        refetch={refetch}
+        questionId={Number(selectedQuestionId)}
+      />
+
+      <ConfirmationModal
+        visible={deleteModal.isVisible}
+        onClose={deleteModal.close}
+        title="Excluir Sessão"
+        description="Tem certeza que deseja excluir esta sessão? Esta ação não pode ser desfeita e todas as perguntas e respostas associadas serão removidas."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteQuestion}
+        messageApi={messageApi}
+        successMessage="Sessão excluída com sucesso!"
+        errorMessage="Erro ao excluir sessão. Tente novamente."
+        refetch={refetch}
+        danger={true}
       />
     </PageLayout>
   );

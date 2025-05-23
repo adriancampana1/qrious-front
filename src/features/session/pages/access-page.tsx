@@ -11,17 +11,16 @@ import {
   message
 } from 'antd';
 import { KeyRound, QrCode, ArrowRight } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import PageLayout from '../../../shared/components/page-layout';
 import { sessionService } from '../services/session.service';
 import type { JoinSessionDto } from '../dto/join-session.dto';
+import type { FindSessionByAccessDto } from '../dto/find-session-by-access.dto';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const SessionAccessPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-
   const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -37,8 +36,17 @@ const SessionAccessPage: React.FC = () => {
     setLoading(true);
 
     try {
+      const findSessionByAccessDto: FindSessionByAccessDto = {
+        accessType: 'code',
+        accessValue: accessCode
+      };
+
+      const session = await sessionService.getSessionByCode(
+        findSessionByAccessDto
+      );
+
       const sessionAccess: JoinSessionDto = {
-        sessionId: Number(id),
+        sessionId: session.id,
         sessionAccess: {
           type: 'code',
           value: accessCode
@@ -46,13 +54,13 @@ const SessionAccessPage: React.FC = () => {
       };
 
       const sessionAccessResponse = await sessionService.joinSession(
-        Number(id),
+        session.id,
         sessionAccess
       );
 
       if (sessionAccessResponse) {
         messageApi.success('Sessão acessada com sucesso!');
-        navigate(`/sessoes/123`);
+        navigate(`/sessoes/sessao/${session.id}`);
       }
     } catch (error) {
       messageApi.error(
