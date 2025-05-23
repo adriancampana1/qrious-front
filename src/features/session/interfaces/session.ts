@@ -64,3 +64,17 @@ export const SessionAccessType = {
 
 export type SessionAccessType =
   (typeof SessionAccessType)[keyof typeof SessionAccessType];
+
+export interface SessionUser {
+  sessionId: number;
+  userId: number;
+  role: string;
+  joinedAt: string;
+  removedAt: string | null;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
+}

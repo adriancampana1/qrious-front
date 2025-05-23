@@ -104,10 +104,13 @@ const SessionsPage: React.FC = () => {
       title: 'Participantes',
       dataIndex: 'sessionUsers',
       key: 'participants',
-      render: (sessionUsers) => (
-        <div className="flex items-center">
+      render: (sessionUsers, record) => (
+        <div
+          className="flex items-center cursor-pointer hover:text-blue-600 transition-colors"
+          onClick={() => navigate(`/sessoes/sessao/${record.id}/participantes`)}
+        >
           <Users className="w-4 h-4 mr-2 text-gray-500" />
-          <span>{sessionUsers?.length || 0}</span>
+          <span className="hover:underline">{sessionUsers?.length || 0}</span>
         </div>
       )
     },
@@ -145,6 +148,13 @@ const SessionsPage: React.FC = () => {
                 label: 'Visualizar',
                 icon: <Eye className="w-4 h-4" />,
                 onClick: () => navigate(`/sessoes/sessao/${record.id}`)
+              },
+              {
+                key: 'participants',
+                label: 'Participantes',
+                icon: <Users className="w-4 h-4" />,
+                onClick: () =>
+                  navigate(`/sessoes/sessao/${record.id}/participantes`)
               },
               {
                 key: 'edit',

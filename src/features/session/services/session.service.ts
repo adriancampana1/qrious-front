@@ -2,7 +2,7 @@ import { apiClient } from '../../../shared/services/api.service';
 import type { CreateSessionDto } from '../dto/create-session.dto';
 import type { FindSessionByAccessDto } from '../dto/find-session-by-access.dto';
 import type { JoinSessionDto } from '../dto/join-session.dto';
-import type { SessionWithRelations } from '../interfaces/session';
+import type { SessionUser, SessionWithRelations } from '../interfaces/session';
 
 export class SessionService {
   private readonly baseEndpoint = 'sessions';
@@ -57,6 +57,18 @@ export class SessionService {
   ): Promise<{ success: boolean; message: string }> {
     return apiClient.post<{ success: boolean; message: string }>(
       `${this.baseEndpoint}/${id}/leave`
+    );
+  }
+
+  async getParticipants(id: number): Promise<SessionUser[]> {
+    return apiClient.get<SessionUser[]>(
+      `${this.baseEndpoint}/${id}/participants`
+    );
+  }
+
+  async removeParticipant(id: number, userId: number): Promise<SessionUser> {
+    return apiClient.put<SessionUser>(
+      `${this.baseEndpoint}/${id}/participants/${userId}`
     );
   }
 }

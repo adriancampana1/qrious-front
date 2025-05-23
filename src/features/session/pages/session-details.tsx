@@ -20,7 +20,8 @@ import {
   SearchIcon,
   SortAsc,
   SortDesc,
-  ArrowLeft
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import { useModal } from '../../../shared/hooks/use-modal';
@@ -198,15 +199,23 @@ const SessionDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              onClick={() =>
+                navigate(`/sessoes/sessao/${sessionId}/participantes`)
+              }
+            >
               <Users className="w-5 h-5 text-gray-500" />
               <div>
                 <Text className="text-gray-500 text-sm block">
                   Participantes
                 </Text>
-                <Text className="font-medium">
-                  {session.sessionUsers?.length || 0}
-                </Text>
+                <div className="flex items-center gap-2">
+                  <Text className="font-medium text-blue-600">
+                    {session.sessionUsers?.length || 0}
+                  </Text>
+                  <ArrowRight className="w-3 h-3 text-blue-600" />
+                </div>
               </div>
             </div>
           </div>
@@ -246,6 +255,16 @@ const SessionDetailPage: React.FC = () => {
               />
               <Text className="text-sm">Apenas minhas perguntas</Text>
             </div>
+
+            <Button
+              icon={<Users className="w-4 h-4" />}
+              onClick={() =>
+                navigate(`/sessoes/sessao/${sessionId}/participantes`)
+              }
+              className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
+            >
+              Gerenciar Participantes
+            </Button>
 
             <Button
               type="primary"

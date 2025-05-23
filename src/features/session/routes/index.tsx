@@ -6,6 +6,7 @@ import SessionsPage from '../pages/list';
 import SessionAccessPage from '../pages/access-page';
 import SessionDetailPage from '../pages/session-details';
 import QuestionDetailPage from '../pages/question-details';
+import ParticipantsPage from '../pages/participants';
 
 export const sessionRoutes: RouteObject[] = [
   {
@@ -47,6 +48,16 @@ export const sessionRoutes: RouteObject[] = [
           <ProtectedRoute>
             <Suspense fallback={<LoadingFallback />}>
               <QuestionDetailPage />
+            </Suspense>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'sessao/:id/participantes',
+        element: (
+          <ProtectedRoute requiredRole={['teacher', 'admin']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <ParticipantsPage />
             </Suspense>
           </ProtectedRoute>
         )

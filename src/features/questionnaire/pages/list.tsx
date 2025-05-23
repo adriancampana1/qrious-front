@@ -34,6 +34,7 @@ import CreateQuestionnaireModal from '../modal/create-questionnaire.modal';
 import EditQuestionnaireModal from '../modal/edit-questionnaire.modal';
 import { questionnaireService } from '../services/questionnaire.service';
 import ConfirmationModal from '../../../shared/modal/delete-confirmation.modal';
+import GenerateQuestionnaireModal from '../modal/generate-questionnaire.modal';
 
 const { Title, Text } = Typography;
 
@@ -45,6 +46,7 @@ const QuestionnairesPage: React.FC = () => {
     useState<Questionnaire | null>(null);
   const createQuestionnaireModal = useModal();
   const editQuestionnaireModal = useModal();
+  const generateQuestionnaireModal = useModal();
   const deleteModal = useModal();
   const messageApi = useGlobalMessage();
 
@@ -244,6 +246,14 @@ const QuestionnairesPage: React.FC = () => {
               Filtros
             </Button>
             <Button
+              type="dashed"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={generateQuestionnaireModal.open}
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
+            >
+              Gerar questionário por tema
+            </Button>
+            <Button
               type="primary"
               icon={<Plus className="w-4 h-4" />}
               onClick={createQuestionnaireModal.open}
@@ -309,6 +319,13 @@ const QuestionnairesPage: React.FC = () => {
         onSuccess={refetch}
         bankQuestions={bankQuestions}
         questionnaire={selectedQuestionnaire}
+      />
+
+      <GenerateQuestionnaireModal
+        visible={generateQuestionnaireModal.isVisible}
+        onClose={generateQuestionnaireModal.close}
+        messageApi={messageApi}
+        onSuccess={refetch}
       />
 
       <ConfirmationModal

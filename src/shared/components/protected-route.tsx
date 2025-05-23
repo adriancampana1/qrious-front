@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 
 interface ProtectedRoutePropsType {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string[];
 }
 
 export const ProtectedRoute = ({
@@ -28,13 +28,13 @@ export const ProtectedRoute = ({
     return <LoadingFallback />;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return (
       <Navigate to="/autenticacao/login" state={{ from: location }} replace />
     );
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
+  if (requiredRole && !requiredRole.includes(user.role)) {
     return <Unauthorized />;
   }
 
