@@ -18,7 +18,7 @@ export interface Questionnaire {
   items: {
     questionnaireId: number;
     bankQuestionId: number;
-    bankQuestion: BankQuestion[];
+    bankQuestion: BankQuestion;
     position: number;
   }[];
 }

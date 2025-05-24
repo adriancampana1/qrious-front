@@ -57,7 +57,17 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     {
       key: '4',
       icon: <FileQuestion size={18} />,
-      label: <Link to={'/questionarios/lista'}>Questionários</Link>
+      label: (
+        <Link
+          to={
+            user?.role === 'admin' || user?.role === 'teacher'
+              ? '/questionarios/gerenciar'
+              : '/questionarios/meus'
+          }
+        >
+          Questionários
+        </Link>
+      )
     }
   ];
 
