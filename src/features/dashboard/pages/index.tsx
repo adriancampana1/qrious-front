@@ -14,7 +14,7 @@ import QuestionnaireCard from '../../questionnaire/components/questionnaire-card
 import PageLayout from '../../../shared/components/page-layout';
 import CreateSessionModal from '../../session/modal/create-session.modal';
 import CreateQuestionnaireModal from '../../questionnaire/modal/create-questionnaire.modal';
-import CreateBankQuestionModal from '../../bank-question/modal/create-bank-question.dto';
+import CreateBankQuestionModal from '../../bank-question/modal/create-bank-question.modal';
 import { useModal } from '../../../shared/hooks/use-modal';
 import { useGlobalMessage } from '../../../shared/hooks/use-message';
 import { useGetAllSessions } from '../../session/hooks/use-session';

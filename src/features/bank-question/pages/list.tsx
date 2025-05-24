@@ -26,7 +26,7 @@ import { useGlobalMessage } from '../../../shared/hooks/use-message';
 import { bankQuestionHooks } from '../hooks/use-bank-question';
 import type { BankQuestion } from '../interfaces/bank-question';
 import PageLayout from '../../../shared/components/page-layout';
-import CreateBankQuestionModal from '../modal/create-bank-question.dto';
+import CreateBankQuestionModal from '../modal/create-bank-question.modal';
 import {
   BankQuestionDifficulty,
   BankQuestionType
@@ -34,6 +34,7 @@ import {
 import EditBankQuestionModal from '../dto/edit-bank-question.dto';
 import ConfirmationModal from '../../../shared/modal/delete-confirmation.modal';
 import { bankQuestionService } from '../services/bank-question.service';
+import ImportQuestionsModal from '../modal/import-question.modal';
 
 const { Title, Text } = Typography;
 
@@ -42,6 +43,7 @@ const BankQuestionsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const bankQuestionModal = useModal();
+  const bankQuestionImportModal = useModal();
   const editBankQuestionModal = useModal();
   const deleteModal = useModal();
   const messageApi = useGlobalMessage();
@@ -286,6 +288,14 @@ const BankQuestionsPage: React.FC = () => {
               Filtros
             </Button>
             <Button
+              type="dashed"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={bankQuestionImportModal.open}
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
+            >
+              Importar questões
+            </Button>
+            <Button
               type="primary"
               icon={<Plus className="w-4 h-4" />}
               onClick={bankQuestionModal.open}
@@ -342,6 +352,14 @@ const BankQuestionsPage: React.FC = () => {
         messageApi={messageApi}
         refetch={refetch}
       />
+
+      <ImportQuestionsModal
+        visible={bankQuestionImportModal.isVisible}
+        onClose={bankQuestionImportModal.close}
+        messageApi={messageApi}
+        refetch={refetch}
+      />
+
       <EditBankQuestionModal
         visible={editBankQuestionModal.isVisible}
         onClose={editBankQuestionModal.close}

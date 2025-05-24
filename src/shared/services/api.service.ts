@@ -94,7 +94,13 @@ export class ApiClient {
         url += `?${queryParams.toString()}`;
       }
 
+      const isFormData = data instanceof FormData;
+
       const headers = this.createHeaders(options);
+
+      if (isFormData) {
+        headers.delete('Content-Type');
+      }
 
       const config: RequestInit = {
         method,
@@ -103,7 +109,9 @@ export class ApiClient {
       };
 
       if (data && ['POST', 'PUT', 'PATCH'].includes(method)) {
-        config.body = JSON.stringify(data);
+        config.body = isFormData
+          ? (data as unknown as FormData)
+          : JSON.stringify(data);
       }
 
       const response = await fetch(url, config);
