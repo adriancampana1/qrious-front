@@ -1,11 +1,20 @@
+'use client';
+
 import { Form, Select, type FormInstance } from 'antd';
 import { useEffect } from 'react';
 import type { QuestionnaireVisibility } from '../interfaces/questionnaire';
 import type { SessionWithRelations } from '../../session/interfaces/session';
-import type { CreateQuestionnaireDto } from '../dto/create-questionnaire.dto';
 
-interface QuestionnaireVisibilitySelectorProps {
-  form: FormInstance<CreateQuestionnaireDto>;
+// Interface base para os campos necessários
+interface BaseQuestionnaireForm {
+  visibility: QuestionnaireVisibility;
+  sessionId?: string | number;
+}
+
+interface QuestionnaireVisibilitySelectorProps<
+  T extends BaseQuestionnaireForm
+> {
+  form: FormInstance<T>;
   sessions?: SessionWithRelations[];
 }
 
@@ -27,15 +36,17 @@ const visibilityOptions = [
   }
 ];
 
-export const QuestionnaireVisibilitySelector = ({
+export const QuestionnaireVisibilitySelector = <
+  T extends BaseQuestionnaireForm
+>({
   form,
   sessions = []
-}: QuestionnaireVisibilitySelectorProps) => {
+}: QuestionnaireVisibilitySelectorProps<T>) => {
   const visibility = Form.useWatch('visibility', form);
 
   useEffect(() => {
     if (visibility !== 'session') {
-      form.setFieldValue('sessionId', undefined);
+      form.setFieldsValue({ sessionId: undefined });
     }
   }, [visibility, form]);
 

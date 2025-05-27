@@ -250,7 +250,7 @@ const SessionsPage: React.FC = () => {
                 pageSize={pageSize}
                 total={filteredSessions.length}
                 onChange={(page) => setCurrentPage(page)}
-                onShowSizeChange={(current, size) => {
+                onShowSizeChange={(_, size) => {
                   setCurrentPage(1);
                   setPageSize(size);
                 }}

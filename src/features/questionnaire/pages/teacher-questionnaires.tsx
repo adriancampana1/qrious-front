@@ -108,6 +108,7 @@ const TeacherQuestionnairesPage = () => {
         visible={generateModal.isVisible}
         onClose={generateModal.close}
         messageApi={messageApi}
+        sessions={sessions || []}
         onSuccess={refetch}
       />
     </PageLayout>

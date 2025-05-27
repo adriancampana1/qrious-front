@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Button,
   Checkbox,
@@ -12,12 +14,16 @@ import { useCallback } from 'react';
 import { useLayoutLoading } from '../../../shared/hooks/use-layout';
 import { questionnaireService } from '../services/questionnaire.service';
 import type { BankQuestionDifficulty } from '../../bank-question/types/bank-question.types';
+import type { QuestionnaireVisibility } from '../interfaces/questionnaire';
+import type { SessionWithRelations } from '../../session/interfaces/session';
+import { QuestionnaireVisibilitySelector } from '../components/questionnaire-visibility-selector';
 
 type GenerateQuestionnaireModalPropsType = {
   visible: boolean;
   readonly onClose: () => void;
   messageApi?: MessageInstance;
   onSuccess?: () => void;
+  sessions: SessionWithRelations[];
 };
 
 type GenerateQuestionnaireFormValuesType = {
@@ -28,6 +34,8 @@ type GenerateQuestionnaireFormValuesType = {
   numQuestions: number;
   timeLimitMinutes?: number;
   showAnswersAfterSubmission: boolean;
+  visibility: QuestionnaireVisibility;
+  sessionId?: number;
 };
 
 const difficultyOptions = [
@@ -40,7 +48,8 @@ const GenerateQuestionnaireModal = ({
   visible,
   onClose,
   messageApi,
-  onSuccess
+  onSuccess,
+  sessions
 }: GenerateQuestionnaireModalPropsType) => {
   const { isLoading, setLoading } = useLayoutLoading();
   const [form] = Form.useForm<GenerateQuestionnaireFormValuesType>();
@@ -51,16 +60,29 @@ const GenerateQuestionnaireModal = ({
         await form.validateFields();
         setLoading(true);
 
+        if (values.visibility === 'session' && !values.sessionId) {
+          messageApi?.error(
+            'Sessão é obrigatória quando a visibilidade é "Sessão"'
+          );
+          return;
+        }
+
+        const questionnaireData = {
+          title: values.title,
+          theme: values.theme,
+          description: values.description,
+          difficulty: values.difficulty,
+          numQuestions: values.numQuestions,
+          timeLimitMinutes: values.timeLimitMinutes,
+          showAnswersAfterSubmission: values.showAnswersAfterSubmission,
+          visibility: values.visibility,
+          ...(values.visibility === 'session' && {
+            sessionId: values.sessionId
+          })
+        };
+
         const questionnaireResponse =
-          await questionnaireService.generateQuestionnaire({
-            title: values.title,
-            theme: values.theme,
-            description: values.description,
-            difficulty: values.difficulty,
-            numQuestions: values.numQuestions,
-            timeLimitMinutes: values.timeLimitMinutes,
-            showAnswersAfterSubmission: values.showAnswersAfterSubmission
-          });
+          await questionnaireService.generateQuestionnaire(questionnaireData);
 
         if (questionnaireResponse) {
           form.resetFields();
@@ -84,20 +106,20 @@ const GenerateQuestionnaireModal = ({
     [form, onClose, setLoading, messageApi, onSuccess]
   );
 
+  const handleCancel = useCallback(() => {
+    form.resetFields();
+    onClose();
+  }, [form, onClose]);
+
   return (
     <Modal
       centered
-      onCancel={onClose}
+      onCancel={handleCancel}
       open={visible}
       title="Gerar questionário automático"
       width={800}
       footer={[
-        <Button
-          key="back"
-          onClick={onClose}
-          disabled={isLoading}
-          loading={isLoading}
-        >
+        <Button key="back" onClick={handleCancel} disabled={isLoading}>
           Cancelar
         </Button>,
         <Button
@@ -118,7 +140,8 @@ const GenerateQuestionnaireModal = ({
         initialValues={{
           showAnswersAfterSubmission: false,
           difficulty: 'medium',
-          numQuestions: 5
+          numQuestions: 5,
+          visibility: 'private'
         }}
         autoComplete="off"
         onFinish={handleSubmit}
@@ -126,7 +149,6 @@ const GenerateQuestionnaireModal = ({
         <Form.Item
           label="Título"
           name="title"
-          vertical
           required
           rules={[
             {
@@ -144,7 +166,6 @@ const GenerateQuestionnaireModal = ({
         <Form.Item
           label="Tema"
           name="theme"
-          vertical
           required
           rules={[
             {
@@ -159,7 +180,6 @@ const GenerateQuestionnaireModal = ({
         <Form.Item
           label="Descrição"
           name="description"
-          vertical
           required
           rules={[
             {
@@ -174,56 +194,54 @@ const GenerateQuestionnaireModal = ({
           />
         </Form.Item>
 
-        <Form.Item
-          label="Dificuldade"
-          name="difficulty"
-          vertical
-          required
-          rules={[
-            {
-              required: true,
-              message: 'Por favor, selecione a dificuldade!'
-            }
-          ]}
-        >
-          <Select
-            className="h-12"
-            placeholder="Selecione a dificuldade"
-            options={difficultyOptions}
-          />
-        </Form.Item>
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            label="Dificuldade"
+            name="difficulty"
+            required
+            rules={[
+              {
+                required: true,
+                message: 'Por favor, selecione a dificuldade!'
+              }
+            ]}
+          >
+            <Select
+              className="h-12"
+              placeholder="Selecione a dificuldade"
+              options={difficultyOptions}
+            />
+          </Form.Item>
 
-        <Form.Item
-          label="Número de questões"
-          name="numQuestions"
-          vertical
-          required
-          rules={[
-            {
-              required: true,
-              type: 'number',
-              message: 'Por favor, insira o número de questões!'
-            }
-          ]}
-        >
-          <InputNumber
-            className="h-12 w-full!"
-            placeholder="Quantidade de questões"
-            min={1}
-          />
-        </Form.Item>
+          <Form.Item
+            label="Número de questões"
+            name="numQuestions"
+            required
+            rules={[
+              {
+                required: true,
+                type: 'number',
+                message: 'Por favor, insira o número de questões!'
+              }
+            ]}
+          >
+            <InputNumber
+              className="h-12 w-full!"
+              placeholder="Quantidade de questões"
+              min={1}
+            />
+          </Form.Item>
+        </div>
 
-        <Form.Item
-          label="Tempo limite (minutos)"
-          name="timeLimitMinutes"
-          vertical
-        >
+        <Form.Item label="Tempo limite (minutos)" name="timeLimitMinutes">
           <InputNumber
             className="h-12 w-full!"
             placeholder="Tempo limite em minutos (opcional)"
             min={1}
           />
         </Form.Item>
+
+        <QuestionnaireVisibilitySelector form={form} sessions={sessions} />
 
         <Form.Item name="showAnswersAfterSubmission" valuePropName="checked">
           <Checkbox>Mostrar respostas após submissão</Checkbox>

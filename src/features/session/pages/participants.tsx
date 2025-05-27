@@ -293,7 +293,7 @@ const ParticipantsPage: React.FC = () => {
                 pageSize={pageSize}
                 total={filteredParticipants.length}
                 onChange={(page) => setCurrentPage(page)}
-                onShowSizeChange={(current, size) => {
+                onShowSizeChange={(_, size) => {
                   setCurrentPage(1);
                   setPageSize(size);
                 }}
