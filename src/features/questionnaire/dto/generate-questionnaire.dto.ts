@@ -1,4 +1,5 @@
-import type { BankQuestionDifficulty } from '../../bank-question/types/bank-question.types';
+import { BankQuestionDifficulty } from '../../bank-question/types/bank-question.types';
+import type { QuestionnaireVisibility } from '../interfaces/questionnaire';
 
 export interface GenerateQuestionnaireDto {
   title: string;
@@ -6,6 +7,8 @@ export interface GenerateQuestionnaireDto {
   description: string;
   difficulty: BankQuestionDifficulty;
   numQuestions: number;
-  showAnswersAfterSubmission: boolean;
   timeLimitMinutes?: number;
+  showAnswersAfterSubmission: boolean;
+  visibility: QuestionnaireVisibility;
+  sessionId?: number;
 }

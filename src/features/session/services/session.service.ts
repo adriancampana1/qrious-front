@@ -24,6 +24,12 @@ export class SessionService {
     );
   }
 
+  async getSessionsByUserId(): Promise<SessionWithRelations[]> {
+    return apiClient.get<SessionWithRelations[]>(
+      `${this.baseEndpoint}/my-sessions`
+    );
+  }
+
   async createSession(data: CreateSessionDto): Promise<SessionWithRelations> {
     return apiClient.post<SessionWithRelations>(this.baseEndpoint, data);
   }

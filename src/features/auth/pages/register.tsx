@@ -104,22 +104,18 @@ export default function Register() {
 
       <Form.Item
         label="Confirme sua senha"
-        name="password"
+        name="confirmPassword"
+        dependencies={['password']}
         rules={[
-          { required: true, message: 'Por favor, informe sua senha' },
-          { min: 8, message: 'A senha deve ter pelo menos 8 caracteres' },
-          {
-            pattern: /[A-Z]/,
-            message: 'A senha deve conter pelo menos uma letra maiúscula'
-          },
-          {
-            pattern: /[a-z]/,
-            message: 'A senha deve conter pelo menos uma letra minúscula'
-          },
-          {
-            pattern: /[0-9]/,
-            message: 'A senha deve conter pelo menos um número'
-          }
+          { required: true, message: 'Por favor, confirme sua senha' },
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue('password') === value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error('As senhas não coincidem'));
+            }
+          })
         ]}
       >
         <Input.Password

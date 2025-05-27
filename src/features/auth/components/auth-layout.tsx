@@ -1,10 +1,8 @@
-import { Button, Card, Divider, Form, Layout, Typography, Spin } from 'antd';
-import { AppleIcon, GoogleIcon } from '../../../assets/icons/social-icons';
+import { Button, Card, Form, Layout, Typography } from 'antd';
 import { Link, useNavigate } from 'react-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../hooks/use-auth';
 
-// Interface mockada. Criar tipagem real
 export interface AuthFormValues {
   email: string;
   password: string;
@@ -41,17 +39,8 @@ export default function AuthLayout<
 }: AuthLayoutPropsType<T>) {
   const [form] = Form.useForm();
   const { isAuthenticated } = useAuth();
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
 
   const navigate = useNavigate();
-
-  const handleSocialLogin = (provider: string) => {
-    setSocialLoading(provider);
-    setTimeout(() => {
-      console.log(`Login com ${provider}`);
-      setSocialLoading(null);
-    }, 1000);
-  };
 
   const handleSubmit = (values: T) => {
     if (onSubmit) {
@@ -139,39 +128,6 @@ export default function AuthLayout<
             </Button>
           </Form.Item>
         </Form>
-
-        <Divider className="my-6">
-          <span className="text-gray-400 text-sm px-2">ou continue com</span>
-        </Divider>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Button
-            size="large"
-            icon={
-              socialLoading === 'Google' ? (
-                <Spin size="small" />
-              ) : (
-                <GoogleIcon />
-              )
-            }
-            className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all h-12"
-            onClick={() => handleSocialLogin('Google')}
-            disabled={!!socialLoading}
-          >
-            <span className="text-gray-700">Google</span>
-          </Button>
-          <Button
-            size="large"
-            icon={
-              socialLoading === 'Apple' ? <Spin size="small" /> : <AppleIcon />
-            }
-            className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all h-12"
-            onClick={() => handleSocialLogin('Apple')}
-            disabled={!!socialLoading}
-          >
-            <span className="text-gray-700">Apple</span>
-          </Button>
-        </div>
 
         <div className="flex items-center justify-center mt-6">
           {renderFormFooterMessage()}

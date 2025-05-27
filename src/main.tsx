@@ -7,6 +7,9 @@ import { ConfigProvider } from 'antd';
 import { AuthProvider } from './features/auth/context/auth.provider.tsx';
 import { LayoutProvider } from './shared/hooks/use-layout.tsx';
 import { MessageProvider } from './shared/hooks/use-message.tsx';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,11 +21,13 @@ createRoot(document.getElementById('root')!).render(
       }}
     >
       <AuthProvider>
-        <MessageProvider>
-          <LayoutProvider>
-            <RouterProvider router={router} />
-          </LayoutProvider>
-        </MessageProvider>
+        <QueryClientProvider client={queryClient}>
+          <MessageProvider>
+            <LayoutProvider>
+              <RouterProvider router={router} />
+            </LayoutProvider>
+          </MessageProvider>
+        </QueryClientProvider>
       </AuthProvider>
     </ConfigProvider>
   </StrictMode>

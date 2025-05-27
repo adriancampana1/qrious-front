@@ -1,5 +1,7 @@
 import type { BankQuestion } from '../../bank-question/interfaces/bank-question';
 
+export type QuestionnaireVisibility = 'private' | 'public' | 'session';
+
 export interface Questionnaire {
   id: number;
   title: string;
@@ -10,6 +12,8 @@ export interface Questionnaire {
   timeLimitMinutes: number | null;
   createdAt: Date;
   createdById: number;
+  visibility: QuestionnaireVisibility;
+  sessionId?: number | null;
   createdBy: {
     id: number;
     name: string;

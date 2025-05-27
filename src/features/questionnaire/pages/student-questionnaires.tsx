@@ -1,13 +1,17 @@
 import { Typography, Card } from 'antd';
 import { BookOpen } from 'lucide-react';
-import { questionnaireHooks } from '../hooks/use-questionnaire';
+import { useGetAvailableQuestionnaires } from '../hooks/use-questionnaire';
 import PageLayout from '../../../shared/components/page-layout';
 import QuestionnaireGrid from '../components/questionnaire-grid';
 
 const { Title, Text } = Typography;
 
 const StudentQuestionnairesPage = () => {
-  const { data: questionnaires, isLoading } = questionnaireHooks.useGetAll();
+  const {
+    data: questionnaires,
+    isLoading,
+    refetch
+  } = useGetAvailableQuestionnaires();
 
   return (
     <PageLayout>
@@ -28,6 +32,7 @@ const StudentQuestionnairesPage = () => {
           questionnaires={questionnaires || []}
           userRole="student"
           isLoading={isLoading}
+          onRefresh={refetch}
         />
       </Card>
     </PageLayout>

@@ -28,6 +28,10 @@ export class QuestionnaireService {
   async deleteQuestionnaire(id: number): Promise<void> {
     return apiClient.delete<void>(`${this.baseEndpoint}/${id}`);
   }
+
+  async getAvailableQuestionnaires(): Promise<Questionnaire[]> {
+    return apiClient.get<Questionnaire[]>(`${this.baseEndpoint}/available`);
+  }
 }
 
 export const questionnaireService = new QuestionnaireService();

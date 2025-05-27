@@ -27,7 +27,7 @@ import {
   HelpCircle,
   ArrowRight
 } from 'lucide-react';
-import { useGetAllSessions } from '../hooks/use-session';
+import { useGetSessionsByUserId } from '../hooks/use-session';
 import type { Session } from '../interfaces/session';
 import CreateSessionModal from '../modal/create-session.modal';
 import { useNavigate } from 'react-router';
@@ -54,7 +54,7 @@ const SessionsPage: React.FC = () => {
     data: sessions,
     isLoading: sessionloading,
     refetch
-  } = useGetAllSessions();
+  } = useGetSessionsByUserId();
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 

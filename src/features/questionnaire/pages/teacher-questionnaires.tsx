@@ -11,6 +11,7 @@ import CreateQuestionnaireModal from '../modal/create-questionnaire.modal';
 import EditQuestionnaireModal from '../modal/edit-questionnaire.modal';
 import GenerateQuestionnaireModal from '../modal/generate-questionnaire.modal';
 import type { Questionnaire } from '../interfaces/questionnaire';
+import { useGetAllSessions } from '../../session/hooks/use-session';
 
 const { Title, Text } = Typography;
 
@@ -26,6 +27,7 @@ const TeacherQuestionnairesPage = () => {
   const { data: bankQuestions } = bankQuestionHooks.usePaginated({
     params: { page: 1, limit: 100 }
   });
+  const { data: sessions } = useGetAllSessions();
 
   const createModal = useModal();
   const editModal = useModal();
@@ -84,13 +86,13 @@ const TeacherQuestionnairesPage = () => {
         />
       </Card>
 
-      {/* Modais */}
       <CreateQuestionnaireModal
         visible={createModal.isVisible}
         onClose={createModal.close}
         messageApi={messageApi}
         onSuccess={refetch}
         bankQuestions={bankQuestions}
+        sessions={sessions || []}
       />
 
       <EditQuestionnaireModal

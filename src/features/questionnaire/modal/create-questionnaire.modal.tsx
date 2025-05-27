@@ -12,6 +12,9 @@ import { useCallback } from 'react';
 import { useLayoutLoading } from '../../../shared/hooks/use-layout';
 import { questionnaireService } from '../services/questionnaire.service';
 import type { BankQuestion } from '../../bank-question/interfaces/bank-question';
+import type { CreateQuestionnaireDto } from '../dto/create-questionnaire.dto';
+import { QuestionnaireVisibilitySelector } from '../components/questionnaire-visibility-selector';
+import type { SessionWithRelations } from '../../session/interfaces/session';
 
 type CreateQuestionnaireModalPropsType = {
   visible: boolean;
@@ -19,16 +22,7 @@ type CreateQuestionnaireModalPropsType = {
   messageApi?: MessageInstance;
   onSuccess?: () => void;
   bankQuestions: BankQuestion[] | null;
-};
-
-type CreateQuestionnaireFormValuesType = {
-  title: string;
-  theme: string;
-  description: string;
-  numQuestions: number;
-  timeLimitMinutes?: number;
-  showAnswersAfterSubmission: boolean;
-  bankQuestionIds: number[];
+  sessions: SessionWithRelations[];
 };
 
 const CreateQuestionnaireModal = ({
@@ -36,27 +30,32 @@ const CreateQuestionnaireModal = ({
   onClose,
   messageApi,
   onSuccess,
-  bankQuestions
+  bankQuestions,
+  sessions
 }: CreateQuestionnaireModalPropsType) => {
   const { isLoading, setLoading } = useLayoutLoading();
-  const [form] = Form.useForm<CreateQuestionnaireFormValuesType>();
+  const [form] = Form.useForm<CreateQuestionnaireDto>();
 
   const handleSubmit = useCallback(
-    async (values: CreateQuestionnaireFormValuesType) => {
+    async (values: CreateQuestionnaireDto) => {
       try {
         await form.validateFields();
         setLoading(true);
 
+        if (values.visibility === 'session' && !values.sessionId) {
+          messageApi?.error(
+            'Sessão é obrigatória quando a visibilidade é "Sessão"'
+          );
+          return;
+        }
+
+        const questionnaireData: CreateQuestionnaireDto = {
+          ...values,
+          ...(values.visibility !== 'session' && { sessionId: undefined })
+        };
+
         const questionnaireResponse =
-          await questionnaireService.createQuestionnaire({
-            title: values.title,
-            theme: values.theme,
-            description: values.description,
-            numQuestions: values.numQuestions,
-            timeLimitMinutes: values.timeLimitMinutes,
-            showAnswersAfterSubmission: values.showAnswersAfterSubmission,
-            bankQuestionIds: values.bankQuestionIds
-          });
+          await questionnaireService.createQuestionnaire(questionnaireData);
 
         if (questionnaireResponse) {
           form.resetFields();
@@ -73,25 +72,27 @@ const CreateQuestionnaireModal = ({
           messageApi?.error(`Erro ao criar questionário: ${errorMsg}`);
         }, 100);
         console.error('Falha ao criar questionário:', error);
+      } finally {
+        setLoading(false);
       }
     },
     [form, onClose, setLoading, messageApi, onSuccess]
   );
 
+  const handleCancel = useCallback(() => {
+    form.resetFields();
+    onClose();
+  }, [form, onClose]);
+
   return (
     <Modal
       centered
-      onCancel={onClose}
+      onCancel={handleCancel}
       open={visible}
       title="Novo questionário"
       width={800}
       footer={[
-        <Button
-          key="back"
-          onClick={onClose}
-          disabled={isLoading}
-          loading={isLoading}
-        >
+        <Button key="back" onClick={handleCancel} disabled={isLoading}>
           Cancelar
         </Button>,
         <Button
@@ -109,14 +110,16 @@ const CreateQuestionnaireModal = ({
         form={form}
         layout="vertical"
         name="create-questionnaire"
-        initialValues={{ remember: true, showAnswersAfterSubmission: false }}
+        initialValues={{
+          showAnswersAfterSubmission: false,
+          visibility: 'private'
+        }}
         autoComplete="off"
         onFinish={handleSubmit}
       >
         <Form.Item
           label="Título"
           name="title"
-          vertical
           required
           rules={[
             {
@@ -134,7 +137,6 @@ const CreateQuestionnaireModal = ({
         <Form.Item
           label="Tema"
           name="theme"
-          vertical
           required
           rules={[
             {
@@ -149,7 +151,6 @@ const CreateQuestionnaireModal = ({
         <Form.Item
           label="Descrição"
           name="description"
-          vertical
           required
           rules={[
             {
@@ -164,37 +165,36 @@ const CreateQuestionnaireModal = ({
           />
         </Form.Item>
 
-        <Form.Item
-          label="Número de questões"
-          name="numQuestions"
-          vertical
-          required
-          rules={[
-            {
-              required: true,
-              type: 'number',
-              message: 'Por favor, insira o número de questões!'
-            }
-          ]}
-        >
-          <InputNumber
-            className="h-12 w-full!"
-            placeholder="Quantidade de questões"
-            min={1}
-          />
-        </Form.Item>
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            label="Número de questões"
+            name="numQuestions"
+            required
+            rules={[
+              {
+                required: true,
+                type: 'number',
+                message: 'Por favor, insira o número de questões!'
+              }
+            ]}
+          >
+            <InputNumber
+              className="h-12 w-full!"
+              placeholder="Quantidade de questões"
+              min={1}
+            />
+          </Form.Item>
 
-        <Form.Item
-          label="Tempo limite (minutos)"
-          name="timeLimitMinutes"
-          vertical
-        >
-          <InputNumber
-            className="h-12 w-full!"
-            placeholder="Tempo limite em minutos (opcional)"
-            min={1}
-          />
-        </Form.Item>
+          <Form.Item label="Tempo limite (minutos)" name="timeLimitMinutes">
+            <InputNumber
+              className="h-12 w-full!"
+              placeholder="Tempo limite (opcional)"
+              min={1}
+            />
+          </Form.Item>
+        </div>
+
+        <QuestionnaireVisibilitySelector form={form} sessions={sessions} />
 
         <Form.Item name="showAnswersAfterSubmission" valuePropName="checked">
           <Checkbox>Mostrar respostas após submissão</Checkbox>
@@ -203,7 +203,6 @@ const CreateQuestionnaireModal = ({
         <Form.Item
           label="Selecione as perguntas do questionário"
           name="bankQuestionIds"
-          vertical
           required
           rules={[
             {
@@ -224,6 +223,7 @@ const CreateQuestionnaireModal = ({
                   }))
                 : []
             }
+            notFoundContent="Nenhuma questão disponível"
           />
         </Form.Item>
       </Form>
