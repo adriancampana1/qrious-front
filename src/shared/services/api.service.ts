@@ -27,7 +27,9 @@ export class ApiClient {
 
   constructor(baseUrl?: string) {
     this.baseUrl =
-      baseUrl || import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      baseUrl ||
+      import.meta.env.VITE_API_URL ||
+      'https://qrious-api.onrender.com';
   }
 
   private getAuthToken(): string | null {
