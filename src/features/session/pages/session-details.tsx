@@ -21,7 +21,8 @@ import {
   SortAsc,
   SortDesc,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Share2
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import { useModal } from '../../../shared/hooks/use-modal';
@@ -32,6 +33,7 @@ import QuestionCard from '../components/question-card';
 import { useGetAllQuestionsBySessionId } from '../hooks/use-question';
 import { questionService } from '../services/question.service';
 import { useAuth } from '../../auth/hooks/use-auth';
+import ShareSessionModal from '../modal/share-session.modal';
 
 const { Title, Text } = Typography;
 
@@ -43,6 +45,7 @@ const SessionDetailPage: React.FC = () => {
 
   const navigate = useNavigate();
   const createQuestionModal = useModal();
+  const shareModal = useModal();
 
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'votes'>('votes');
@@ -167,13 +170,22 @@ const SessionDetailPage: React.FC = () => {
             <Text className="text-gray-500">{session.description}</Text>
           </div>
 
-          <Tag
-            color={isSessionActive ? 'success' : 'default'}
-            className="flex! justify-center items-center gap-1 px-3! py-2! text-sm"
-          >
-            <Clock className="w-3.5 h-3.5" />
-            {isSessionActive ? 'Sessão ativa' : 'Sessão inativa'}
-          </Tag>
+          <div className="flex items-center gap-2">
+            <Button
+              icon={<Share2 className="w-4 h-4" />}
+              onClick={shareModal.open}
+              className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
+            >
+              <span className="hidden sm:inline">Compartilhar</span>
+            </Button>
+            <Tag
+              color={isSessionActive ? 'success' : 'default'}
+              className="flex! justify-center items-center gap-1 px-3! py-2! text-sm"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              {isSessionActive ? 'Sessão ativa' : 'Sessão inativa'}
+            </Tag>
+          </div>
         </div>
 
         <Card className="border border-gray-100 rounded-lg shadow-sm mb-6">
@@ -319,6 +331,11 @@ const SessionDetailPage: React.FC = () => {
         sessionId={sessionId}
         messageApi={messageApi}
         refetch={refetch}
+      />
+      <ShareSessionModal
+        visible={shareModal.isVisible}
+        onClose={shareModal.close}
+        session={session}
       />
     </PageLayout>
   );
