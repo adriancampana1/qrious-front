@@ -180,8 +180,11 @@ const Dashboard: React.FC = () => {
         <TabPane tab="Visão Geral" key="1">
           <Row gutter={[24, 24]}>
             <Col span={24}>
-              <div className="flex items-center justify-between">
-                <Title level={5} className="mb-0 font-medium text-gray-700">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                <Title
+                  level={5}
+                  className="mb-0 font-medium text-gray-700 whitespace-nowrap"
+                >
                   Sessões
                 </Title>
                 <div className="flex items-center gap-2">
