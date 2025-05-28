@@ -4,7 +4,8 @@ import type {
   RegisterData
 } from '../types/auth.types';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const API_URL =
+  import.meta.env.VITE_API_URL ?? 'https://qrious-api.onrender.com';
 
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
