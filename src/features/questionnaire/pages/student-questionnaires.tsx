@@ -17,8 +17,11 @@ const StudentQuestionnairesPage = () => {
     <PageLayout>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <BookOpen className="w-8 h-8 text-blue-600" />
-          <Title level={2} className="mb-0 font-medium text-gray-800">
+          <BookOpen className="w-8 h-8 text-blue-600 shrink-0" />
+          <Title
+            level={2}
+            className="mb-0 font-medium text-gray-800 whitespace-normal"
+          >
             Meus Questionários
           </Title>
         </div>

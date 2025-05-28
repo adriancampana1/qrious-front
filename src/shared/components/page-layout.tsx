@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Layout,
   Menu,
@@ -16,10 +16,10 @@ import {
   HelpCircle,
   FileQuestion,
   MenuIcon,
-  ChevronLeft,
   User,
   Settings,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 import { useMediaQuery } from '../hooks/use-mobile';
 import LoadingFallback from './loading-fallback';
@@ -34,9 +34,10 @@ interface PageLayoutProps {
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const { logout, user } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [collapsed, setCollapsed] = useState(isMobile);
   const { isLoading } = useLayoutLoading();
+  const [selectedKeys, setSelectedKeys] = useState<string[]>(['1']);
 
   const menuItems: MenuProps['items'] = [
     {
@@ -97,6 +98,23 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     setCollapsed(!collapsed);
   };
 
+  useEffect(() => {
+    setCollapsed(isMobile);
+  }, [isMobile]);
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/') {
+      setSelectedKeys(['1']);
+    } else if (path.includes('/sessoes')) {
+      setSelectedKeys(['2']);
+    } else if (path.includes('/banco-questoes')) {
+      setSelectedKeys(['3']);
+    } else if (path.includes('/questionarios')) {
+      setSelectedKeys(['4']);
+    }
+  }, []);
+
   return (
     <Layout className="h-screen overflow-hidden">
       {!isMobile && (
@@ -123,7 +141,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           </Link>
           <Menu
             mode="inline"
-            defaultSelectedKeys={['1']}
+            selectedKeys={selectedKeys}
             items={menuItems}
             className="border-0"
           />
@@ -138,6 +156,11 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           open={!collapsed}
           width={240}
           className="p-0!"
+          styles={{
+            body: {
+              padding: 0
+            }
+          }}
         >
           <div className="p-4 flex items-center justify-between h-16 border-b border-gray-100">
             <h1 className="text-lg font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
@@ -145,15 +168,19 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
             </h1>
             <Button
               type="text"
-              icon={<ChevronLeft size={18} />}
+              icon={<X size={18} />}
               onClick={() => setCollapsed(true)}
             />
           </div>
           <Menu
             mode="inline"
-            defaultSelectedKeys={['1']}
+            selectedKeys={selectedKeys}
             items={menuItems}
-            className="border-0"
+            className="border-0 w-full! px-0!"
+            style={{
+              width: '100%',
+              padding: 0
+            }}
           />
         </Drawer>
       )}
@@ -165,7 +192,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
               type="text"
               icon={<MenuIcon size={20} />}
               onClick={toggleSidebar}
-              className="mr-2"
+              className="mt-2"
             />
           </div>
 

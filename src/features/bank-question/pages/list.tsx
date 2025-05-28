@@ -14,7 +14,6 @@ import {
 import {
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -276,24 +275,19 @@ const BankQuestionsPage: React.FC = () => {
           <Input
             placeholder="Buscar questões..."
             prefix={<Search className="w-4 h-4 text-gray-400" />}
-            className="max-w-md"
+            className="w-full sm:max-w-md"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <div className="flex gap-3">
-            <Button
-              icon={<Filter className="w-4 h-4" />}
-              className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
-            >
-              Filtros
-            </Button>
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-end">
             <Button
               type="dashed"
               icon={<Plus className="w-4 h-4" />}
               onClick={bankQuestionImportModal.open}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
-              Importar questões
+              <span className="hidden sm:inline">Importar questões</span>
+              <span className="sm:hidden">Importar</span>
             </Button>
             <Button
               type="primary"
@@ -301,7 +295,8 @@ const BankQuestionsPage: React.FC = () => {
               onClick={bankQuestionModal.open}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
-              Nova Questão
+              <span className="hidden sm:inline">Nova Questão</span>
+              <span className="sm:hidden">Adicionar</span>
             </Button>
           </div>
         </div>
@@ -310,15 +305,19 @@ const BankQuestionsPage: React.FC = () => {
       <Card className="border border-gray-100 rounded-lg shadow-sm">
         {filteredQuestions.length > 0 ? (
           <>
-            <Table
-              dataSource={paginatedQuestions}
-              columns={columns}
-              rowKey="id"
-              loading={isLoading}
-              pagination={false}
-              className="mb-4"
-            />
-            <div className="flex justify-end">
+            <div className="overflow-x-auto">
+              <Table
+                dataSource={paginatedQuestions}
+                columns={columns}
+                rowKey="id"
+                loading={isLoading}
+                pagination={false}
+                className="mb-4"
+                scroll={{ x: 'max-content' }}
+                size="middle"
+              />
+            </div>
+            <div className="flex justify-end mt-4">
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
@@ -330,6 +329,8 @@ const BankQuestionsPage: React.FC = () => {
                 }}
                 showSizeChanger
                 showQuickJumper
+                size="small"
+                className="text-sm"
               />
             </div>
           </>

@@ -17,7 +17,6 @@ import {
 import {
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Eye,
   Edit,
@@ -197,29 +196,23 @@ const SessionsPage: React.FC = () => {
       </div>
 
       <Card className="mb-6 border border-gray-100 rounded-lg shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
           <Input
             placeholder="Buscar sessões..."
             prefix={<Search className="w-4 h-4 text-gray-400" />}
-            className="max-w-md"
+            className="w-full sm:max-w-md"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <div className="flex gap-3">
-            <Button
-              icon={<Filter className="w-4 h-4" />}
-              className="border-gray-200 hover:border-gray-300 hover:text-gray-700"
-              type="dashed"
-            >
-              Filtros
-            </Button>
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-end">
             <Button
               type="default"
               icon={<Plus className="w-4 h-4" />}
               onClick={sessionModal.open}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
-              Nova Sessão
+              <span className="hidden sm:inline">Nova Sessão</span>
+              <span className="sm:hidden">Nova</span>
             </Button>
             <Button
               type="primary"
@@ -227,7 +220,8 @@ const SessionsPage: React.FC = () => {
               onClick={() => navigate('/sessoes/entrar')}
               className="bg-gradient-to-r from-teal-500 to-cyan-500 border-0 shadow-sm hover:opacity-90"
             >
-              Entrar em uma sessão
+              <span className="hidden sm:inline">Entrar em uma sessão</span>
+              <span className="sm:hidden">Entrar</span>
             </Button>
           </div>
         </div>
@@ -236,15 +230,19 @@ const SessionsPage: React.FC = () => {
       <Card className="border border-gray-100 rounded-lg shadow-sm">
         {filteredSessions.length > 0 ? (
           <>
-            <Table
-              dataSource={paginatedSessions}
-              columns={columns}
-              rowKey="id"
-              loading={sessionloading}
-              pagination={false}
-              className="mb-4"
-            />
-            <div className="flex justify-end">
+            <div className="overflow-x-auto">
+              <Table
+                dataSource={paginatedSessions}
+                columns={columns}
+                rowKey="id"
+                loading={sessionloading}
+                pagination={false}
+                className="mb-4"
+                scroll={{ x: 'max-content' }}
+                size="middle"
+              />
+            </div>
+            <div className="flex justify-end mt-4">
               <Pagination
                 current={currentPage}
                 pageSize={pageSize}
@@ -256,6 +254,8 @@ const SessionsPage: React.FC = () => {
                 }}
                 showSizeChanger
                 showQuickJumper
+                size="small"
+                className="text-sm"
               />
             </div>
           </>

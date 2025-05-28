@@ -45,11 +45,14 @@ const TeacherQuestionnairesPage = () => {
   return (
     <PageLayout>
       <div className="mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <BookOpen className="w-8 h-8 text-blue-600" />
-              <Title level={2} className="mb-0 font-medium text-gray-800">
+              <BookOpen className="w-8 h-8 text-blue-600 shrink-0" />
+              <Title
+                level={2}
+                className="mb-0 font-medium text-gray-800 whitespace-normal"
+              >
                 Gerenciar Questionários
               </Title>
             </div>
@@ -58,20 +61,24 @@ const TeacherQuestionnairesPage = () => {
             </Text>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 self-start">
             <Button
               type="dashed"
               icon={<BarChart3 className="w-4 h-4" />}
               onClick={generateModal.open}
+              className="whitespace-nowrap"
             >
-              Gerar por Tema
+              <span className="hidden sm:inline">Gerar por Tema</span>
+              <span className="sm:hidden">Gerar</span>
             </Button>
             <Button
               type="primary"
               icon={<Plus className="w-4 h-4" />}
               onClick={createModal.open}
+              className="whitespace-nowrap"
             >
-              Novo Questionário
+              <span className="hidden sm:inline">Novo Questionário</span>
+              <span className="sm:hidden">Novo</span>
             </Button>
           </div>
         </div>
