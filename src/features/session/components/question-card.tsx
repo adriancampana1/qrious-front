@@ -65,10 +65,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (
+      !(e.target as Element).closest('button') &&
+      !(e.target as Element).closest('[role="button"]')
+    ) {
+      onClick();
+    }
+  };
+
   return (
     <Card
       className="border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-      onClick={onClick}
+      onClick={handleCardClick}
+      style={{ padding: '16px' }}
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between">
@@ -83,7 +93,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               </p>
             )}
 
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
                 {formatDate(createdAt)}
