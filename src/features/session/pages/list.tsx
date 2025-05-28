@@ -1,7 +1,5 @@
-'use client';
-
 import type React from 'react';
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import {
   Typography,
   Button,
@@ -81,6 +79,24 @@ const SessionsPage: React.FC = () => {
   const openEditModal = (session: Session) => {
     setSessionToEdit(session);
     editSessionModal.open();
+  };
+
+  const handleRowClick = (record: Session) => {
+    return {
+      onClick: (event: MouseEvent) => {
+        if (
+          event.target instanceof Element &&
+          (event.target.closest('button') ||
+            event.target.closest('.ant-dropdown-trigger') ||
+            event.target.closest('a'))
+        ) {
+          return;
+        }
+
+        navigate(`/sessoes/sessao/${record.id}`);
+      },
+      className: 'cursor-pointer hover:bg-gray-50'
+    };
   };
 
   const columns: TableProps<Session>['columns'] = [
@@ -240,6 +256,7 @@ const SessionsPage: React.FC = () => {
                 className="mb-4"
                 scroll={{ x: 'max-content' }}
                 size="middle"
+                onRow={handleRowClick}
               />
             </div>
             <div className="flex justify-end mt-4">
